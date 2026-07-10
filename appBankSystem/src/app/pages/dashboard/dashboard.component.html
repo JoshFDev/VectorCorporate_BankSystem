@@ -53,7 +53,7 @@
       </section>
 
       <section class="card txn-card">
-        <h3 class="card-title">Movimientos recientes</h3>
+        <h3 class="card-title">Movimientos recientes <a routerLink="/transactions" class="see-all">Ver todos</a></h3>
         <div class="txn-item" *ngFor="let t of transactions">
           <div class="txn-icon" [class]="txnClass(t.type)">{{ txnIcon(t.type) }}</div>
           <div class="txn-info">
