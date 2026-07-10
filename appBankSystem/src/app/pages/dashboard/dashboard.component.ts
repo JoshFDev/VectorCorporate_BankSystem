@@ -1,14 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AccountService, AccountData } from '../../services/account.service';
-import { TransactionService, TransactionData } from '../../services/transaction.service';
+import { TransactionService } from '../../services/transaction.service';
+import { ModalComponent } from '../../components/modal/modal.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, ModalComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -16,21 +18,32 @@ export class DashboardComponent implements OnInit {
   user: any = null;
   accounts: AccountData[] = [];
   selectedAccount: AccountData | null = null;
-  transactions: TransactionData[] = [];
+  transactions: any[] = [];
   loading = true;
   error = '';
+
+  showDeposit = false;
+  showWithdraw = false;
+  showTransfer = false;
+  txnError = '';
+  txnSuccess = '';
+
+  depositAmount = 0;
+  withdrawAmount = 0;
+  transferAmount = 0;
+  transferTo = '';
 
   constructor(
     private auth: AuthService,
     private accountSvc: AccountService,
     private txnSvc: TransactionService,
-    private router: Router
+    private router: Router,
   ) {}
 
   ngOnInit() {
     this.auth.ready$.subscribe((ready) => {
       if (!ready) return;
-      const u = this.auth['userSubject'].value;
+      const u = (this.auth as any).userSubject.value;
       this.user = u;
       if (u) this.loadData();
       else this.router.navigate(['/login']);
@@ -42,9 +55,7 @@ export class DashboardComponent implements OnInit {
     this.accountSvc.getMyAccounts().subscribe({
       next: (res) => {
         this.accounts = res.accounts;
-        if (res.accounts.length > 0) {
-          this.selectAccount(res.accounts[0]);
-        }
+        if (res.accounts.length > 0) this.selectAccount(res.accounts[0]);
         this.loading = false;
       },
       error: () => {
@@ -71,32 +82,17 @@ export class DashboardComponent implements OnInit {
   }
 
   txnIcon(type: string): string {
-    const icons: Record<string, string> = {
-      deposit: '⬇',
-      withdrawal: '⬆',
-      transfer_in: '↘',
-      transfer_out: '↗',
-    };
+    const icons: Record<string, string> = { deposit: '⬇', withdrawal: '⬆', transfer_in: '↘', transfer_out: '↗' };
     return icons[type] || '•';
   }
 
   txnLabel(type: string): string {
-    const labels: Record<string, string> = {
-      deposit: 'Depósito',
-      withdrawal: 'Retiro',
-      transfer_in: 'Transferencia recibida',
-      transfer_out: 'Transferencia enviada',
-    };
+    const labels: Record<string, string> = { deposit: 'Depósito', withdrawal: 'Retiro', transfer_in: 'Transferencia recibida', transfer_out: 'Transferencia enviada' };
     return labels[type] || type;
   }
 
   txnClass(type: string): string {
-    const cls: Record<string, string> = {
-      deposit: 'deposit',
-      withdrawal: 'withdrawal',
-      transfer_in: 'transfer-in',
-      transfer_out: 'transfer-out',
-    };
+    const cls: Record<string, string> = { deposit: 'deposit', withdrawal: 'withdrawal', transfer_in: 'transfer-in', transfer_out: 'transfer-out' };
     return cls[type] || '';
   }
 
@@ -106,5 +102,76 @@ export class DashboardComponent implements OnInit {
 
   logout() {
     this.auth.logout();
+  }
+
+  openModal(type: 'deposit' | 'withdraw' | 'transfer') {
+    this.txnError = '';
+    this.txnSuccess = '';
+    this.depositAmount = 0;
+    this.withdrawAmount = 0;
+    this.transferAmount = 0;
+    this.transferTo = '';
+    if (type === 'deposit') this.showDeposit = true;
+    if (type === 'withdraw') this.showWithdraw = true;
+    if (type === 'transfer') this.showTransfer = true;
+  }
+
+  closeModal(type: 'deposit' | 'withdraw' | 'transfer') {
+    if (type === 'deposit') this.showDeposit = false;
+    if (type === 'withdraw') this.showWithdraw = false;
+    if (type === 'transfer') this.showTransfer = false;
+  }
+
+  doDeposit() {
+    if (!this.selectedAccount || this.depositAmount <= 0) return;
+    this.txnError = '';
+    this.txnSuccess = '';
+    this.txnSvc.deposit(this.selectedAccount.number, this.depositAmount).subscribe({
+      next: (res) => {
+        this.txnSuccess = `Depósito de ${this.formatCurrency(this.depositAmount)} exitoso`;
+        this.refreshAccount(res.account.number);
+        setTimeout(() => this.closeModal('deposit'), 1200);
+      },
+      error: (err) => (this.txnError = err.error?.error || 'Error al depositar'),
+    });
+  }
+
+  doWithdraw() {
+    if (!this.selectedAccount || this.withdrawAmount <= 0) return;
+    this.txnError = '';
+    this.txnSuccess = '';
+    this.txnSvc.withdraw(this.selectedAccount.number, this.withdrawAmount).subscribe({
+      next: (res) => {
+        this.txnSuccess = `Retiro de ${this.formatCurrency(this.withdrawAmount)} exitoso`;
+        this.refreshAccount(res.account.number);
+        setTimeout(() => this.closeModal('withdraw'), 1200);
+      },
+      error: (err) => (this.txnError = err.error?.error || 'Error al retirar'),
+    });
+  }
+
+  doTransfer() {
+    if (!this.selectedAccount || this.transferAmount <= 0 || !this.transferTo) return;
+    this.txnError = '';
+    this.txnSuccess = '';
+    this.txnSvc.transfer(this.selectedAccount.number, this.transferTo, this.transferAmount).subscribe({
+      next: (res) => {
+        this.txnSuccess = `Transferencia de ${this.formatCurrency(this.transferAmount)} exitosa`;
+        this.refreshAccount(res.source.number);
+        setTimeout(() => this.closeModal('transfer'), 1200);
+      },
+      error: (err) => (this.txnError = err.error?.error || 'Error al transferir'),
+    });
+  }
+
+  private refreshAccount(accountNumber: string) {
+    this.accountSvc.getAccount(accountNumber).subscribe((res) => {
+      const idx = this.accounts.findIndex((a) => a.number === accountNumber);
+      if (idx !== -1) {
+        this.accounts[idx].balance = res.account.balance;
+        this.selectedAccount = this.accounts[idx];
+      }
+      this.loadData();
+    });
   }
 }

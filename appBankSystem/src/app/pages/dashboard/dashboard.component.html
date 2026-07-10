@@ -1,5 +1,4 @@
 <div class="dashboard" *ngIf="!loading">
-  <!-- Top bar -->
   <header class="topbar">
     <div class="brand">
       <div class="brand-icon">
@@ -16,35 +15,30 @@
   </header>
 
   <main class="content">
-    <!-- Error -->
     <div class="alert error" *ngIf="error">{{ error }}</div>
 
-    <!-- Balance summary -->
     <section class="balance-card">
       <div class="balance-label">Saldo total disponible</div>
       <div class="balance-amount">{{ formatCurrency(totalBalance) }}</div>
       <div class="balance-note">{{ accounts.length }} cuenta{{ accounts.length !== 1 ? 's' : '' }}</div>
     </section>
 
-    <!-- Actions -->
     <section class="actions">
-      <button class="action-btn deposit" [disabled]="!selectedAccount">
+      <button class="action-btn deposit" [disabled]="!selectedAccount" (click)="openModal('deposit')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Depositar
       </button>
-      <button class="action-btn withdraw" [disabled]="!selectedAccount">
+      <button class="action-btn withdraw" [disabled]="!selectedAccount" (click)="openModal('withdraw')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Retirar
       </button>
-      <button class="action-btn transfer" [disabled]="!selectedAccount">
+      <button class="action-btn transfer" [disabled]="!selectedAccount" (click)="openModal('transfer')">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
         Transferir
       </button>
     </section>
 
-    <!-- Accounts & Transactions row -->
     <div class="columns">
-      <!-- Accounts list -->
       <section class="card accounts-card">
         <h3 class="card-title">Tus cuentas</h3>
         <div class="account-item" *ngFor="let acc of accounts" [class.active]="selectedAccount?.number === acc.number" (click)="selectAccount(acc)">
@@ -58,7 +52,6 @@
         <div class="empty" *ngIf="accounts.length === 0">No tienes cuentas aún</div>
       </section>
 
-      <!-- Recent transactions -->
       <section class="card txn-card">
         <h3 class="card-title">Movimientos recientes</h3>
         <div class="txn-item" *ngFor="let t of transactions">
@@ -82,3 +75,51 @@
 <div class="loading-screen" *ngIf="loading">
   <div class="spinner"></div>
 </div>
+
+<!-- Deposit Modal -->
+<app-modal [open]="showDeposit" title="Depositar" (close)="closeModal('deposit')">
+  <div class="modal-txn">
+    <p class="modal-account">{{ selectedAccount?.number }} · {{ accountTypeLabel(selectedAccount?.type || '') }}</p>
+    <div class="field">
+      <label>Monto</label>
+      <input type="number" [(ngModel)]="depositAmount" min="1" placeholder="0.00" />
+    </div>
+    <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
+    <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
+    <button class="btn-submit" (click)="doDeposit()" [disabled]="depositAmount <= 0">Depositar</button>
+  </div>
+</app-modal>
+
+<!-- Withdraw Modal -->
+<app-modal [open]="showWithdraw" title="Retirar" (close)="closeModal('withdraw')">
+  <div class="modal-txn">
+    <p class="modal-account">{{ selectedAccount?.number }} · {{ accountTypeLabel(selectedAccount?.type || '') }}</p>
+    <p class="modal-balance">Saldo disponible: {{ formatCurrency(selectedAccount?.balance || 0) }}</p>
+    <div class="field">
+      <label>Monto</label>
+      <input type="number" [(ngModel)]="withdrawAmount" min="1" [max]="selectedAccount?.balance" placeholder="0.00" />
+    </div>
+    <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
+    <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
+    <button class="btn-submit" (click)="doWithdraw()" [disabled]="withdrawAmount <= 0 || withdrawAmount > (selectedAccount?.balance || 0)">Retirar</button>
+  </div>
+</app-modal>
+
+<!-- Transfer Modal -->
+<app-modal [open]="showTransfer" title="Transferir" (close)="closeModal('transfer')">
+  <div class="modal-txn">
+    <p class="modal-account">Desde: {{ selectedAccount?.number }} · {{ accountTypeLabel(selectedAccount?.type || '') }}</p>
+    <p class="modal-balance">Saldo disponible: {{ formatCurrency(selectedAccount?.balance || 0) }}</p>
+    <div class="field">
+      <label>Cuenta destino</label>
+      <input type="text" [(ngModel)]="transferTo" placeholder="Número de cuenta" />
+    </div>
+    <div class="field">
+      <label>Monto</label>
+      <input type="number" [(ngModel)]="transferAmount" min="1" [max]="selectedAccount?.balance" placeholder="0.00" />
+    </div>
+    <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
+    <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
+    <button class="btn-submit" (click)="doTransfer()" [disabled]="transferAmount <= 0 || transferAmount > (selectedAccount?.balance || 0) || !transferTo">Transferir</button>
+  </div>
+</app-modal>

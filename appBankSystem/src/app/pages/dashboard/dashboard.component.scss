@@ -310,3 +310,35 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+// Modal transaction styles
+.modal-txn {
+  .modal-account {
+    font-size: 14px; color: #64748b; margin: 0 0 16px;
+  }
+  .modal-balance {
+    font-size: 13px; color: #94a3b8; margin: 0 0 16px;
+  }
+  .field {
+    margin-bottom: 16px;
+    label {
+      display: block; font-size: 13px; font-weight: 500; color: #64748b; margin-bottom: 6px;
+    }
+    input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+      font-size: 14px; color: #1e293b; outline: none; box-sizing: border-box;
+      &:focus { border-color: #1e40af; }
+    }
+  }
+  .alert {
+    text-align: center; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;
+    &.error { background: #fef2f2; color: #dc2626; }
+    &.success { background: #f0fdf4; color: #059669; }
+  }
+  .btn-submit {
+    width: 100%; padding: 12px; background: #1e40af; color: #fff; border: none;
+    border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+    &:hover:not(:disabled) { background: #1e3a8a; }
+    &:disabled { background: #94a3b8; cursor: not-allowed; }
+  }
+}
