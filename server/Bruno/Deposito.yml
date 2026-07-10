@@ -1,0 +1,26 @@
+info:
+  name: Deposito
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/transactions/deposit
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNGYyZjVlN2Q1MWI1MjgwYjY3YTJlYiIsImlhdCI6MTc4MzY1MTA1OSwiZXhwIjoxNzgzNzM3NDU5fQ.iGxAw_8jpSWAGFSokGcPg6yHrsKAp0JGHJ1X72VhwSw
+  body:
+    type: json
+    data: |-
+      {
+        "accountNumber": "1000001",
+        "amount": 500,
+        "description": "Prueba con auth"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
