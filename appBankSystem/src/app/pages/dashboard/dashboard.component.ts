@@ -28,7 +28,9 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.auth.user$.subscribe((u) => {
+    this.auth.ready$.subscribe((ready) => {
+      if (!ready) return;
+      const u = this.auth['userSubject'].value;
       this.user = u;
       if (u) this.loadData();
       else this.router.navigate(['/login']);

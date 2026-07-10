@@ -15,13 +15,17 @@ export class AuthService {
   private apiUrl = environment.apiUrl;
   private tokenKey = 'vectorbank_token';
   private userSubject = new BehaviorSubject<any>(null);
+  private readySubject = new BehaviorSubject<boolean>(false);
 
   user$ = this.userSubject.asObservable();
+  ready$ = this.readySubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {
     const token = localStorage.getItem(this.tokenKey);
     if (token) {
       this.loadUser();
+    } else {
+      this.readySubject.next(true);
     }
   }
 
@@ -40,6 +44,7 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     this.userSubject.next(null);
+    this.readySubject.next(true);
     this.router.navigate(['/login']);
   }
 
@@ -54,14 +59,25 @@ export class AuthService {
   private setSession(res: AuthResponse): void {
     localStorage.setItem(this.tokenKey, res.token);
     this.userSubject.next(res.user);
+    this.readySubject.next(true);
   }
 
   private loadUser(): void {
     const token = this.getToken();
-    if (!token) return;
+    if (!token) {
+      this.readySubject.next(true);
+      return;
+    }
     this.http.get<any>(`${this.apiUrl}/users/me`).subscribe({
-      next: (res) => this.userSubject.next(res.user),
-      error: () => this.logout()
+      next: (res) => {
+        this.userSubject.next(res.user);
+        this.readySubject.next(true);
+      },
+      error: () => {
+        localStorage.removeItem(this.tokenKey);
+        this.userSubject.next(null);
+        this.readySubject.next(true);
+      }
     });
   }
 }
