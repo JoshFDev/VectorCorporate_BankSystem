@@ -1,0 +1,383 @@
+.register-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: #0a1628;
+  padding: 1rem;
+}
+
+.register-card {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 680px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.card-header {
+  text-align: center;
+  padding: 2rem 2rem 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #1e40af;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+    letter-spacing: 0;
+  }
+}
+
+.subtitle {
+  color: #64748b;
+  font-size: 14px;
+  margin: 4px 0 0;
+}
+
+.register-form {
+  padding: 1.5rem 2rem 0;
+}
+
+.form-section {
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0 0 14px;
+}
+
+.field-group {
+  display: flex;
+  gap: 14px;
+
+  .field {
+    flex: 1;
+  }
+}
+
+.field {
+  margin-bottom: 14px;
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0 12px;
+  background: #fff;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
+
+  &.focused {
+    border-color: #1e40af;
+
+    label {
+      color: #1e40af;
+    }
+  }
+
+  &.error {
+    border-color: #dc2626;
+
+    &.focused label {
+      color: #dc2626;
+    }
+  }
+
+  .icon {
+    flex-shrink: 0;
+    color: #94a3b8;
+    margin-right: 10px;
+    transition: color 0.2s;
+  }
+
+  &.focused .icon {
+    color: #1e40af;
+  }
+
+  &.error .icon {
+    color: #dc2626;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    padding: 13px 0;
+    color: #1e293b;
+    width: 100%;
+    font-family: inherit;
+
+    &[type="date"] {
+      &::-webkit-datetime-edit { color: transparent; }
+      &::-webkit-calendar-picker-indicator { opacity: 0.4; cursor: pointer; }
+    }
+
+  &.focused input[type="date"]::-webkit-datetime-edit,
+  &.has-value input[type="date"]::-webkit-datetime-edit {
+    color: #1e293b;
+  }
+  }
+
+  label {
+    position: absolute;
+    left: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 14px;
+    pointer-events: none;
+    transition: all 0.2s;
+    padding: 0 4px;
+    background: #fff;
+  }
+
+  &.focused label,
+  &.has-value label {
+    top: 0;
+    transform: translateY(-50%) scale(0.82);
+    color: #64748b;
+  }
+}
+
+// --- Country dropdown ---
+.country-wrap {
+  position: relative;
+
+  .dropdown-arrow {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 4px;
+    flex-shrink: 0;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #64748b;
+    }
+  }
+
+  &.active-dropdown {
+    border-color: #1e40af;
+
+    .dropdown-arrow {
+      color: #1e40af;
+    }
+  }
+}
+
+.country-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  li {
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #1e293b;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+      background: #f1f5f9;
+    }
+  }
+
+  .no-results {
+    color: #94a3b8;
+    cursor: default;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+// --- Toggle password ---
+.toggle-pwd {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  flex-shrink: 0;
+  border-radius: 4px;
+
+  &:hover {
+    color: #64748b;
+  }
+}
+
+// --- Password strength ---
+.pwd-strength {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+
+  .pwd-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+
+  .pwd-bar {
+    flex: 1;
+    height: 4px;
+    border-radius: 2px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+
+  .pwd-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s, background 0.3s;
+  }
+}
+
+// --- Error / ok labels ---
+small {
+  display: block;
+  font-size: 12px;
+  color: #dc2626;
+  margin-top: 4px;
+  padding-left: 4px;
+
+  &.ok {
+    color: #059669;
+  }
+
+  &.err {
+    color: #dc2626;
+  }
+}
+
+// --- Submit button ---
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  background: #1e40af;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+
+  &:hover:not(:disabled) {
+    background: #1e3a8a;
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// --- Footer ---
+.footer {
+  padding: 1rem 2rem 2rem;
+}
+
+.alert {
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin: 0 0 14px;
+
+  &.error {
+    background: #fef2f2;
+    color: #dc2626;
+  }
+
+  &.success {
+    background: #f0fdf4;
+    color: #059669;
+  }
+}
+
+.login-link {
+  text-align: center;
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+
+  a {
+    color: #1e40af;
+    text-decoration: none;
+    font-weight: 600;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
