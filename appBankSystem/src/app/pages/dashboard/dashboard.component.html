@@ -1,1 +1,84 @@
-<p>dashboard works!</p>
+<div class="dashboard" *ngIf="!loading">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      </div>
+      <span class="brand-name">VectorBank</span>
+    </div>
+    <div class="user-area">
+      <span class="user-name">{{ user?.name }}</span>
+      <button class="btn-logout" (click)="logout()" title="Cerrar sesión">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="content">
+    <!-- Error -->
+    <div class="alert error" *ngIf="error">{{ error }}</div>
+
+    <!-- Balance summary -->
+    <section class="balance-card">
+      <div class="balance-label">Saldo total disponible</div>
+      <div class="balance-amount">{{ formatCurrency(totalBalance) }}</div>
+      <div class="balance-note">{{ accounts.length }} cuenta{{ accounts.length !== 1 ? 's' : '' }}</div>
+    </section>
+
+    <!-- Actions -->
+    <section class="actions">
+      <button class="action-btn deposit" [disabled]="!selectedAccount">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Depositar
+      </button>
+      <button class="action-btn withdraw" [disabled]="!selectedAccount">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Retirar
+      </button>
+      <button class="action-btn transfer" [disabled]="!selectedAccount">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        Transferir
+      </button>
+    </section>
+
+    <!-- Accounts & Transactions row -->
+    <div class="columns">
+      <!-- Accounts list -->
+      <section class="card accounts-card">
+        <h3 class="card-title">Tus cuentas</h3>
+        <div class="account-item" *ngFor="let acc of accounts" [class.active]="selectedAccount?.number === acc.number" (click)="selectAccount(acc)">
+          <div class="account-info">
+            <div class="account-type">{{ accountTypeLabel(acc.type) }}</div>
+            <div class="account-number">{{ acc.number }}</div>
+          </div>
+          <div class="account-balance">{{ formatCurrency(acc.balance) }}</div>
+          <div class="account-status" [class.active-status]="acc.isActive">{{ acc.isActive ? 'Activa' : 'Inactiva' }}</div>
+        </div>
+        <div class="empty" *ngIf="accounts.length === 0">No tienes cuentas aún</div>
+      </section>
+
+      <!-- Recent transactions -->
+      <section class="card txn-card">
+        <h3 class="card-title">Movimientos recientes</h3>
+        <div class="txn-item" *ngFor="let t of transactions">
+          <div class="txn-icon" [class]="txnClass(t.type)">{{ txnIcon(t.type) }}</div>
+          <div class="txn-info">
+            <div class="txn-label">{{ txnLabel(t.type) }}</div>
+            <div class="txn-date">{{ t.createdAt | date:'dd MMM yyyy, h:mm a' }}</div>
+          </div>
+          <div class="txn-amount" [class]="txnClass(t.type)">
+            {{ t.type === 'deposit' || t.type === 'transfer_in' ? '+' : '-' }}{{ formatCurrency(t.amount) }}
+          </div>
+        </div>
+        <div class="empty" *ngIf="!selectedAccount">Selecciona una cuenta</div>
+        <div class="empty" *ngIf="selectedAccount && transactions.length === 0">Sin movimientos</div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<!-- Loading -->
+<div class="loading-screen" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
