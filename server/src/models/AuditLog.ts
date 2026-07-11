@@ -2,15 +2,11 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IAuditLog extends Document {
     userId: mongoose.Types.ObjectId | null;
-    action: 'register' | 'login' | 'deposit' | 'withdrawal' | 'transfer' | 'update_profile' | 'delete_account';
+    action: 'register' | 'login' | 'deposit' | 'withdrawal' | 'transfer' | 'update_profile' | 'delete_account' | 'verify_user' | 'role_change' | 'admin_action';
     detail: string;
-    // Descripcion de lo que se hizo
     ipAddress: string;
-    // Direccion IP desde donde se hizo la accion
     userAgent: string;
-    // Navegador o cliente usado
     metadata: Record<string, any>;
-    // Datos extra (ej: monto, cuenta origen/destino)
     createdAt: Date;
 }
 
@@ -22,7 +18,7 @@ const auditLogSchema = new Schema<IAuditLog>({
     },
     action: {
         type: String,
-        enum: ['register', 'login', 'deposit', 'withdrawal', 'transfer', 'update_profile', 'delete_account'],
+        enum: ['register', 'login', 'deposit', 'withdrawal', 'transfer', 'update_profile', 'delete_account', 'verify_user', 'role_change', 'admin_action'],
         required: true
     },
     detail: { type: String, required: true },

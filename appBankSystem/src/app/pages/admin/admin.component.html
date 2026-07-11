@@ -1,0 +1,334 @@
+<div class="admin-page" *ngIf="!loading">
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+      </div>
+      <span class="brand-name">VectorBank Admin</span>
+    </div>
+    <div class="user-area">
+      <a routerLink="/dashboard" class="back-link" title="Volver al dashboard">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+        Dashboard
+      </a>
+      <a routerLink="/profile" class="profile-link" title="Mi perfil">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </a>
+      <span class="user-name">{{ user?.name }}</span>
+      <button class="btn-logout" (click)="logout()" title="Cerrar sesión">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="content">
+    <div class="alert error" *ngIf="error">{{ error }}</div>
+
+    <!-- Stats cards -->
+    <section class="stats-row" *ngIf="stats">
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalUsers }}</div>
+        <div class="stat-label">Usuarios</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.verifiedUsers }}</div>
+        <div class="stat-label">Verificados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalAccounts }}</div>
+        <div class="stat-label">Cuentas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalTransactions }}</div>
+        <div class="stat-label">Transacciones</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ formatCurrency(stats.totalDeposits) }}</div>
+        <div class="stat-label">Total depositado</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.auditLogCount }}</div>
+        <div class="stat-label">Auditoría</div>
+      </div>
+    </section>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab" [class.active]="activeTab === 'users'" (click)="switchTab('users')">Usuarios</button>
+      <button class="tab" [class.active]="activeTab === 'accounts'" (click)="switchTab('accounts')">Cuentas</button>
+      <button class="tab" [class.active]="activeTab === 'audit'" (click)="switchTab('audit')">Auditoría</button>
+    </div>
+
+    <!-- ======== USERS TAB ======== -->
+    <div class="tab-content" *ngIf="activeTab === 'users'">
+      <div class="filters">
+        <input type="text" [(ngModel)]="usersSearch" placeholder="Buscar nombre, email, DNI..." (keyup.enter)="searchUsers()" />
+        <select [(ngModel)]="usersRole" (change)="searchUsers()">
+          <option value="">Todos los roles</option>
+          <option value="admin">Admin</option>
+          <option value="supervisor">Supervisor</option>
+          <option value="teller">Cajero</option>
+          <option value="client">Cliente</option>
+        </select>
+        <button class="btn-search" (click)="searchUsers()">Buscar</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>DNI</th>
+              <th>Rol</th>
+              <th>Verificado</th>
+              <th>Activo</th>
+              <th>Registro</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of users">
+              <td class="cell-name">{{ u.name }}</td>
+              <td>{{ u.email }}</td>
+              <td>{{ u.dni }}</td>
+              <td><span class="role-badge" [class]="roleBadgeClass(u.role)">{{ roleLabel(u.role) }}</span></td>
+              <td>
+                <span class="status-dot" [class.verified]="u.isVerified" [class.unverified]="!u.isVerified"></span>
+                {{ u.isVerified ? 'Sí' : 'No' }}
+              </td>
+              <td>
+                <span class="status-dot" [class.active-status]="u.isActive" [class.inactive-status]="!u.isActive"></span>
+                {{ u.isActive ? 'Sí' : 'No' }}
+              </td>
+              <td class="cell-date">{{ formatDate(u.createdAt) }}</td>
+              <td class="cell-actions">
+                <button class="btn-sm" (click)="openUserDetail(u.id || u._id)" title="Ver detalle">Ver</button>
+                <button class="btn-sm btn-verify" *ngIf="!u.isVerified" (click)="doVerify(u.id || u._id)" title="Verificar">Verificar</button>
+                <button class="btn-sm btn-role" (click)="openRoleModal(u)" title="Cambiar rol">Rol</button>
+                <button class="btn-sm" [class.btn-danger]="u.isActive" (click)="doToggleActive(u)">
+                  {{ u.isActive ? 'Desactivar' : 'Activar' }}
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="users.length === 0">
+              <td colspan="8" class="empty-cell">No se encontraron usuarios</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination" *ngIf="usersPages > 1">
+        <button [disabled]="usersPage <= 1" (click)="goUsersPage(usersPage - 1)">Anterior</button>
+        <span class="page-info">Página {{ usersPage }} de {{ usersPages }} ({{ usersTotal }} usuarios)</span>
+        <button [disabled]="usersPage >= usersPages" (click)="goUsersPage(usersPage + 1)">Siguiente</button>
+      </div>
+    </div>
+
+    <!-- ======== ACCOUNTS TAB ======== -->
+    <div class="tab-content" *ngIf="activeTab === 'accounts'">
+      <div class="filters">
+        <select [(ngModel)]="accountsType" (change)="filterAccounts()">
+          <option value="">Todos los tipos</option>
+          <option value="savings">Ahorros</option>
+          <option value="checking">Corriente</option>
+        </select>
+        <select [(ngModel)]="accountsStatus" (change)="filterAccounts()">
+          <option value="">Todos los estados</option>
+          <option value="active">Activas</option>
+          <option value="inactive">Inactivas</option>
+        </select>
+        <button class="btn-search" (click)="filterAccounts()">Filtrar</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Número</th>
+              <th>Tipo</th>
+              <th>Propietario</th>
+              <th>Email</th>
+              <th>Saldo</th>
+              <th>Moneda</th>
+              <th>Estado</th>
+              <th>Creada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let a of accounts">
+              <td class="cell-mono">{{ a.number }}</td>
+              <td>{{ a.type === 'savings' ? 'Ahorros' : 'Corriente' }}</td>
+              <td>{{ a.user?.name || '-' }}</td>
+              <td>{{ a.user?.email || '-' }}</td>
+              <td class="cell-number">{{ formatCurrency(a.balance) }}</td>
+              <td>{{ a.currency }}</td>
+              <td>
+                <span class="status-dot" [class.active-status]="a.isActive" [class.inactive-status]="!a.isActive"></span>
+                {{ a.isActive ? 'Activa' : 'Inactiva' }}
+              </td>
+              <td class="cell-date">{{ formatDate(a.createdAt) }}</td>
+            </tr>
+            <tr *ngIf="accounts.length === 0">
+              <td colspan="8" class="empty-cell">No se encontraron cuentas</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination" *ngIf="accountsPages > 1">
+        <button [disabled]="accountsPage <= 1" (click)="goAccountsPage(accountsPage - 1)">Anterior</button>
+        <span class="page-info">Página {{ accountsPage }} de {{ accountsPages }} ({{ accountsTotal }} cuentas)</span>
+        <button [disabled]="accountsPage >= accountsPages" (click)="goAccountsPage(accountsPage + 1)">Siguiente</button>
+      </div>
+    </div>
+
+    <!-- ======== AUDIT TAB ======== -->
+    <div class="tab-content" *ngIf="activeTab === 'audit'">
+      <div class="filters">
+        <select [(ngModel)]="logsAction" (change)="filterLogs()">
+          <option value="">Todas las acciones</option>
+          <option value="register">Registro</option>
+          <option value="login">Inicio sesión</option>
+          <option value="deposit">Depósito</option>
+          <option value="withdrawal">Retiro</option>
+          <option value="transfer">Transferencia</option>
+          <option value="update_profile">Actualización perfil</option>
+          <option value="verify_user">Verificación</option>
+          <option value="role_change">Cambio rol</option>
+          <option value="admin_action">Acción admin</option>
+        </select>
+        <input type="text" [(ngModel)]="logsSearch" placeholder="Buscar en detalle..." (keyup.enter)="filterLogs()" />
+        <button class="btn-search" (click)="filterLogs()">Filtrar</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Acción</th>
+              <th>Usuario</th>
+              <th>Detalle</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let l of logs">
+              <td class="cell-date">{{ formatDate(l.createdAt) }}</td>
+              <td><span class="action-badge">{{ actionLabel(l.action) }}</span></td>
+              <td>{{ l.user?.name || 'Sistema' }}<span class="user-email" *ngIf="l.user?.email"> ({{ l.user.email }})</span></td>
+              <td class="cell-detail">{{ l.detail }}</td>
+              <td class="cell-ip">{{ l.ipAddress }}</td>
+            </tr>
+            <tr *ngIf="logs.length === 0">
+              <td colspan="5" class="empty-cell">No se encontraron registros</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination" *ngIf="logsPages > 1">
+        <button [disabled]="logsPage <= 1" (click)="goLogsPage(logsPage - 1)">Anterior</button>
+        <span class="page-info">Página {{ logsPage }} de {{ logsPages }} ({{ logsTotal }} registros)</span>
+        <button [disabled]="logsPage >= logsPages" (click)="goLogsPage(logsPage + 1)">Siguiente</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Loading -->
+<div class="loading-screen" *ngIf="loading">
+  <div class="spinner"></div>
+</div>
+
+<!-- User detail modal -->
+<app-modal [open]="showUserDetail" title="Detalle del usuario" (close)="showUserDetail = false">
+  <div class="user-detail" *ngIf="selectedUser">
+    <div class="detail-grid">
+      <div class="detail-field">
+        <span class="detail-label">Nombre</span>
+        <span class="detail-value">{{ selectedUser.name }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Email</span>
+        <span class="detail-value">{{ selectedUser.email }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">DNI</span>
+        <span class="detail-value">{{ selectedUser.dni }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Teléfono</span>
+        <span class="detail-value">{{ selectedUser.phone }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Dirección</span>
+        <span class="detail-value">{{ selectedUser.address || '-' }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Ocupación</span>
+        <span class="detail-value">{{ selectedUser.occupation || '-' }}</span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Rol</span>
+        <span class="detail-value"><span class="role-badge" [class]="roleBadgeClass(selectedUser.role)">{{ roleLabel(selectedUser.role) }}</span></span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Verificado</span>
+        <span class="detail-value">
+          <span class="status-dot" [class.verified]="selectedUser.isVerified" [class.unverified]="!selectedUser.isVerified"></span>
+          {{ selectedUser.isVerified ? 'Sí' : 'No' }}
+        </span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Activo</span>
+        <span class="detail-value">
+          <span class="status-dot" [class.active-status]="selectedUser.isActive" [class.inactive-status]="!selectedUser.isActive"></span>
+          {{ selectedUser.isActive ? 'Sí' : 'No' }}
+        </span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-label">Registro</span>
+        <span class="detail-value">{{ formatDate(selectedUser.createdAt) }}</span>
+      </div>
+    </div>
+
+    <h4 class="detail-section-title">Cuentas ({{ selectedUserAccounts.length }})</h4>
+    <div class="mini-account" *ngFor="let a of selectedUserAccounts">
+      <div class="mini-account-info">
+        <span class="mini-account-number">{{ a.number }}</span>
+        <span class="mini-account-type">{{ a.type === 'savings' ? 'Ahorros' : 'Corriente' }}</span>
+      </div>
+      <div class="mini-account-balance">{{ formatCurrency(a.balance) }}</div>
+      <div class="mini-account-status" [class.active-status]="a.isActive">{{ a.isActive ? 'Activa' : 'Inactiva' }}</div>
+    </div>
+    <div class="empty" *ngIf="selectedUserAccounts.length === 0">Sin cuentas</div>
+
+    <div class="detail-actions">
+      <button class="btn-sm btn-verify" *ngIf="!selectedUser.isVerified" (click)="doVerify(selectedUser.id || selectedUser._id); showUserDetail = false;">Verificar usuario</button>
+      <button class="btn-sm btn-role" (click)="openRoleModal(selectedUser); showUserDetail = false;">Cambiar rol</button>
+    </div>
+  </div>
+</app-modal>
+
+<!-- Role change modal -->
+<app-modal [open]="showRoleModal" title="Cambiar rol" (close)="showRoleModal = false">
+  <div class="modal-txn" *ngIf="roleTarget">
+    <p style="margin: 0 0 12px; color: #64748b; font-size: 14px;">
+      Cambiar rol de <strong>{{ roleTarget.name }}</strong>
+    </p>
+    <div class="field">
+      <label>Nuevo rol</label>
+      <select [(ngModel)]="newRole" class="select-input">
+        <option value="client">Cliente</option>
+        <option value="teller">Cajero</option>
+        <option value="supervisor">Supervisor</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <p *ngIf="error" class="alert error" style="margin: 0 0 12px;">{{ error }}</p>
+    <button class="btn-submit" (click)="doChangeRole()">Guardar cambio</button>
+  </div>
+</app-modal>
