@@ -358,6 +358,12 @@
       font-size: 14px; color: #1e293b; outline: none; box-sizing: border-box;
       &:focus { border-color: #1e40af; }
     }
+    .select-input {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+      font-size: 14px; color: #1e293b; outline: none; box-sizing: border-box; background: #fff;
+      cursor: pointer;
+      &:focus { border-color: #1e40af; }
+    }
   }
   .alert {
     text-align: center; padding: 8px 12px; border-radius: 6px; font-size: 13px; margin-bottom: 12px;

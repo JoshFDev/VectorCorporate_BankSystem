@@ -106,7 +106,7 @@
     <p class="modal-balance">Saldo disponible: {{ formatCurrency(selectedAccount?.balance || 0) }}</p>
     <div class="field">
       <label>Monto</label>
-      <input type="number" [(ngModel)]="withdrawAmount" min="1" [max]="selectedAccount?.balance" placeholder="0.00" />
+      <input type="number" [(ngModel)]="withdrawAmount" min="1" [max]="selectedAccount?.balance ?? null" placeholder="0.00" />
     </div>
     <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
     <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
@@ -125,10 +125,27 @@
     </div>
     <div class="field">
       <label>Monto</label>
-      <input type="number" [(ngModel)]="transferAmount" min="1" [max]="selectedAccount?.balance" placeholder="0.00" />
+      <input type="number" [(ngModel)]="transferAmount" min="1" [max]="selectedAccount?.balance ?? null" placeholder="0.00" />
     </div>
     <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
     <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
     <button class="btn-submit" (click)="doTransfer()" [disabled]="transferAmount <= 0 || transferAmount > (selectedAccount?.balance || 0) || !transferTo">Transferir</button>
+  </div>
+</app-modal>
+
+<!-- Create Account Modal -->
+<app-modal [open]="showCreateAccount" title="Nueva cuenta" (close)="closeModal('createAccount')">
+  <div class="modal-txn">
+    <p style="margin: 0 0 16px; color: #64748b; font-size: 14px;">Elige el tipo de cuenta que deseas abrir.</p>
+    <div class="field">
+      <label>Tipo de cuenta</label>
+      <select [(ngModel)]="newAccountType" class="select-input">
+        <option value="savings">Ahorros</option>
+        <option value="checking">Corriente</option>
+      </select>
+    </div>
+    <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
+    <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
+    <button class="btn-submit" (click)="doCreateAccount()" [disabled]="saving">Crear cuenta</button>
   </div>
 </app-modal>

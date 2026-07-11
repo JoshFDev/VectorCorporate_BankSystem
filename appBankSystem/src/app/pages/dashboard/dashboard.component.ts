@@ -29,6 +29,7 @@ export class DashboardComponent implements OnInit {
   txnError = '';
   txnSuccess = '';
   newAccountType: 'savings' | 'checking' = 'savings';
+  saving = false;
 
   depositAmount = 0;
   withdrawAmount = 0;
@@ -172,13 +173,18 @@ export class DashboardComponent implements OnInit {
   doCreateAccount() {
     this.txnError = '';
     this.txnSuccess = '';
+    this.saving = true;
     this.accountSvc.createAccount(this.newAccountType).subscribe({
       next: (res) => {
         this.txnSuccess = `Cuenta ${res.account.number} creada`;
+        this.saving = false;
         this.loadData();
         setTimeout(() => this.closeModal('createAccount'), 1200);
       },
-      error: (err) => (this.txnError = err.error?.error || 'Error al crear cuenta'),
+      error: (err) => {
+        this.txnError = err.error?.error || 'Error al crear cuenta';
+        this.saving = false;
+      },
     });
   }
 

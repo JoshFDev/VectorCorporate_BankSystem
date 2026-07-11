@@ -9,8 +9,11 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((err) => {
       if (err.status === 401) {
-        localStorage.removeItem('vectorbank_token');
-        router.navigate(['/login']);
+        const isUsersMe = req.url.includes('/users/me');
+        if (!isUsersMe) {
+          localStorage.removeItem('vectorbank_token');
+          router.navigate(['/login']);
+        }
       }
       return throwError(() => err);
     })
