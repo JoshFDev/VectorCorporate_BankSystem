@@ -3,9 +3,65 @@ import Account from '../models/Account';
 import Transaction from '../models/Transaction';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 import { logAudit } from '../services/audit.service';
+import { generateAccountNumber } from '../services/account.service';
 
 const router = Router();
 router.use(authMiddleware);
+
+/**
+ * @openapi
+ * /api/accounts:
+ *   post:
+ *     tags: [Accounts]
+ *     summary: Crear una nueva cuenta bancaria para el usuario
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [type, currency]
+ *             properties:
+ *               type: { type: string, enum: [savings, checking], default: "savings" }
+ *               currency: { type: string, default: "MXN" }
+ *     responses:
+ *       201:
+ *         description: Cuenta creada exitosamente
+ *       400:
+ *         description: Ya tienes una cuenta de este tipo
+ *       401:
+ *         description: No autorizado
+ */
+router.post('/', async (req: AuthRequest, res: Response) => {
+    try {
+        const { type = 'savings', currency = 'MXN' } = req.body;
+
+        const existing = await Account.findOne({ userId: req.user._id, type, isActive: true });
+        if (existing) {
+            return res.status(400).json({ error: 'Ya tienes una cuenta de este tipo activa' });
+        }
+
+        const accountNumber = await generateAccountNumber();
+        const account = new Account({ userId: req.user._id, accountNumber, type, currency, balance: 0 });
+        await account.save();
+
+        await logAudit({
+            userId: req.user._id.toString(), action: 'create_account',
+            detail: `Cuenta ${accountNumber} (${type}) creada`,
+            ipAddress: req.ip, userAgent: req.headers['user-agent'],
+            metadata: { accountNumber, type, currency }
+        });
+
+        res.status(201).json({
+            message: 'Cuenta creada',
+            account: { number: account.accountNumber, type: account.type, balance: account.balance, currency: account.currency, isActive: true }
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al crear cuenta' });
+    }
+});
 
 /**
  * @openapi

@@ -52,7 +52,13 @@
           <div class="account-balance">{{ formatCurrency(acc.balance) }}</div>
           <div class="account-status" [class.active-status]="acc.isActive">{{ acc.isActive ? 'Activa' : 'Inactiva' }}</div>
         </div>
-        <div class="empty" *ngIf="accounts.length === 0">No tienes cuentas aún</div>
+        <div class="empty" *ngIf="accounts.length === 0">
+          <p>No tienes cuentas aún</p>
+          <button class="btn-create" (click)="openModal('createAccount')">Crear cuenta</button>
+        </div>
+        <div class="create-link" *ngIf="accounts.length > 0">
+          <button (click)="openModal('createAccount')">+ Nueva cuenta</button>
+        </div>
       </section>
 
       <section class="card txn-card">

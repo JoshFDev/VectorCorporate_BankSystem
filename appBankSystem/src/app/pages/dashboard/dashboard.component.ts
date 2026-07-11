@@ -25,8 +25,10 @@ export class DashboardComponent implements OnInit {
   showDeposit = false;
   showWithdraw = false;
   showTransfer = false;
+  showCreateAccount = false;
   txnError = '';
   txnSuccess = '';
+  newAccountType: 'savings' | 'checking' = 'savings';
 
   depositAmount = 0;
   withdrawAmount = 0;
@@ -104,22 +106,25 @@ export class DashboardComponent implements OnInit {
     this.auth.logout();
   }
 
-  openModal(type: 'deposit' | 'withdraw' | 'transfer') {
+  openModal(type: 'deposit' | 'withdraw' | 'transfer' | 'createAccount') {
     this.txnError = '';
     this.txnSuccess = '';
     this.depositAmount = 0;
     this.withdrawAmount = 0;
     this.transferAmount = 0;
     this.transferTo = '';
+    this.newAccountType = 'savings';
     if (type === 'deposit') this.showDeposit = true;
     if (type === 'withdraw') this.showWithdraw = true;
     if (type === 'transfer') this.showTransfer = true;
+    if (type === 'createAccount') this.showCreateAccount = true;
   }
 
-  closeModal(type: 'deposit' | 'withdraw' | 'transfer') {
+  closeModal(type: 'deposit' | 'withdraw' | 'transfer' | 'createAccount') {
     if (type === 'deposit') this.showDeposit = false;
     if (type === 'withdraw') this.showWithdraw = false;
     if (type === 'transfer') this.showTransfer = false;
+    if (type === 'createAccount') this.showCreateAccount = false;
   }
 
   doDeposit() {
@@ -161,6 +166,19 @@ export class DashboardComponent implements OnInit {
         setTimeout(() => this.closeModal('transfer'), 1200);
       },
       error: (err) => (this.txnError = err.error?.error || 'Error al transferir'),
+    });
+  }
+
+  doCreateAccount() {
+    this.txnError = '';
+    this.txnSuccess = '';
+    this.accountSvc.createAccount(this.newAccountType).subscribe({
+      next: (res) => {
+        this.txnSuccess = `Cuenta ${res.account.number} creada`;
+        this.loadData();
+        setTimeout(() => this.closeModal('createAccount'), 1200);
+      },
+      error: (err) => (this.txnError = err.error?.error || 'Error al crear cuenta'),
     });
   }
 

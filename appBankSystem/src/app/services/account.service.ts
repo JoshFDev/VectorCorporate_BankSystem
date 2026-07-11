@@ -29,4 +29,8 @@ export class AccountService {
   getAccount(accountNumber: string): Observable<{ account: AccountData }> {
     return this.http.get<{ account: AccountData }>(`${this.api}/accounts/${accountNumber}`);
   }
+
+  createAccount(type: string = 'savings', currency: string = 'MXN'): Observable<any> {
+    return this.http.post(`${this.api}/accounts`, { type, currency });
+  }
 }
