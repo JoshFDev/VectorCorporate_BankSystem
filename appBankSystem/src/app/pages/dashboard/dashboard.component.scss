@@ -46,6 +46,19 @@
       color: #475569;
     }
 
+    .profile-link {
+      color: #94a3b8;
+      display: flex;
+      padding: 6px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+
+      &:hover {
+        color: #1e40af;
+        background: #eff6ff;
+      }
+    }
+
     .btn-logout {
       background: none;
       border: none;
