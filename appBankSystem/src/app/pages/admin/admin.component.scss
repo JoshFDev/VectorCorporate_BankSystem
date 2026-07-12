@@ -176,3 +176,27 @@
 }
 
 .user-email { font-size: 12px; color: #94a3b8; }
+
+@media (max-width: 768px) {
+  .topbar { padding: 0 16px;
+    .user-name { display: none; }
+    .back-link span { display: none; }
+  }
+
+  .content { padding: 16px; }
+
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+
+  .filters { flex-direction: column;
+    input { min-width: 0; }
+  }
+
+  .data-table { font-size: 13px;
+    th, td { padding: 8px 6px; }
+    .cell-date, .cell-ip { display: none; }
+  }
+
+  .cell-actions { flex-wrap: wrap; }
+
+  .detail-grid { grid-template-columns: 1fr; }
+}

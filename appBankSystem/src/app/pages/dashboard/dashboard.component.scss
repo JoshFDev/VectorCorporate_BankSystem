@@ -403,3 +403,24 @@
     &:disabled { background: #94a3b8; cursor: not-allowed; }
   }
 }
+
+// Responsive
+@media (max-width: 768px) {
+  .topbar { padding: 0 16px;
+    .user-name { display: none; }
+  }
+
+  .content { padding: 16px; }
+
+  .balance-card { padding: 20px;
+    .balance-amount { font-size: 28px; }
+  }
+
+  .actions { gap: 8px;
+    .action-btn { font-size: 13px; padding: 10px 8px;
+      svg { width: 16px; height: 16px; }
+    }
+  }
+
+  .columns { flex-direction: column; gap: 16px; }
+}
