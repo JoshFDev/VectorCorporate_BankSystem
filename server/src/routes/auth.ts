@@ -1,10 +1,12 @@
 import { Router, Request, Response } from 'express';
+import crypto from 'crypto';
 import User from '../models/User';
 import Account from '../models/Account';
 import { hashPassword, comparePassword, generateToken } from '../services/auth';
 import { validateEmail } from '../services/validation';
 import { generateAccountNumber } from '../services/account.service';
 import { logAudit } from '../services/audit.service';
+import { sendPasswordResetEmail } from '../services/email.service';
 
 const router = Router();
 
@@ -207,6 +209,64 @@ router.put('/change-password', async (req: Request, res: Response) => {
         res.json({ message: 'Contraseña actualizada exitosamente' });
     } catch (error) {
         res.status(500).json({ error: 'Error al cambiar contraseña' });
+    }
+});
+
+// POST /api/auth/forgot-password
+router.post('/forgot-password', async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(422).json({ error: 'Email requerido' });
+
+        const user = await User.findOne({ email });
+        // Always return success to avoid email enumeration
+        if (!user) return res.json({ message: 'Si el correo existe, recibiras un enlace de recuperacion' });
+
+        const token = crypto.randomBytes(32).toString('hex');
+        user.resetPasswordToken = token;
+        user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+        await user.save();
+
+        await sendPasswordResetEmail(email, token);
+
+        res.json({ message: 'Si el correo existe, recibiras un enlace de recuperacion' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al enviar correo de recuperacion' });
+    }
+});
+
+// POST /api/auth/reset-password
+router.post('/reset-password', async (req: Request, res: Response) => {
+    try {
+        const { token, newPassword } = req.body;
+        if (!token || !newPassword) {
+            return res.status(422).json({ error: 'Token y nueva contrasena requeridos' });
+        }
+
+        const user = await User.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: new Date() }
+        });
+
+        if (!user) return res.status(400).json({ error: 'Token invalido o expirado' });
+
+        user.password = await hashPassword(newPassword);
+        user.resetPasswordToken = null;
+        user.resetPasswordExpires = null;
+        await user.save();
+
+        await logAudit({
+            userId: user._id.toString(),
+            action: 'update_profile',
+            detail: 'Contrasena restablecida via email',
+            ipAddress: req.ip,
+            userAgent: req.headers['user-agent'],
+            metadata: {}
+        });
+
+        res.json({ message: 'Contrasena actualizada exitosamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al restablecer contrasena' });
     }
 });
 

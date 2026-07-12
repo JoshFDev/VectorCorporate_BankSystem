@@ -6,15 +6,12 @@ export interface IUser extends Document {
     password: string;
     photo: Buffer | null;
     fingerprint: Buffer | null;
-    // -- Datos personales --
     dni: string;
-    // Documento unico de identidad (DPI, cedula, pasaporte)
     phone: string;
     address: string;
     dateOfBirth: Date;
     nationality: string;
     occupation: string;
-    // -- Datos del sistema --
     role: 'client' | 'admin' | 'teller' | 'supervisor';
     isVerified: boolean;
     twoFactorEnabled: boolean;
@@ -22,6 +19,8 @@ export interface IUser extends Document {
     createdAt: Date;
     updatedAt: Date;
     isActive: boolean;
+    resetPasswordToken: string | null;
+    resetPasswordExpires: Date | null;
 }
 
 const userSchema = new Schema<IUser>({
@@ -65,6 +64,8 @@ const userSchema = new Schema<IUser>({
         type: Date,
         default: null
     },
+    resetPasswordToken: { type: String, default: null },
+    resetPasswordExpires: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     isActive: { type: Boolean, default: true },

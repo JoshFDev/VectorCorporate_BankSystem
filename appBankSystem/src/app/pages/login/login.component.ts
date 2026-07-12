@@ -43,6 +43,8 @@ import { CommonModule } from '@angular/common';
           <button type="submit" class="btn-submit" [disabled]="loginForm.invalid">Iniciar sesión</button>
 
           <p *ngIf="error" class="alert alert-error">{{ error }}</p>
+
+          <p class="forgot-link"><a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a></p>
         </form>
 
         <p class="register-link">¿No tienes cuenta? <a routerLink="/register">Regístrate aquí</a></p>
@@ -114,6 +116,9 @@ import { CommonModule } from '@angular/common';
       font-size: 14px; margin-top: 16px;
     }
     .alert-error { background: #fef2f2; color: #dc2626; }
+    .forgot-link { text-align: center; margin-top: 12px; font-size: 13px; }
+    .forgot-link a { color: #64748b; text-decoration: none; }
+    .forgot-link a:hover { color: #1e40af; text-decoration: underline; }
     .register-link { text-align: center; margin-top: 24px; color: #64748b; font-size: 14px; }
     .register-link a { color: #1e40af; text-decoration: none; font-weight: 600; }
     .register-link a:hover { text-decoration: underline; }
