@@ -46,7 +46,23 @@
       color: #475569;
     }
 
-    .profile-link, .admin-link {
+    .profile-link {
+      color: #94a3b8;
+      display: flex;
+      padding: 2px;
+      border-radius: 50%;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #eff6ff;
+      }
+    }
+
+    .avatar-mini { width: 30px; height: 30px; border-radius: 50%; overflow: hidden;
+      .avatar-mini-img { width: 100%; height: 100%; object-fit: cover; }
+    }
+
+    .admin-link {
       color: #94a3b8;
       display: flex;
       padding: 6px;

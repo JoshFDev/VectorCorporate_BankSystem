@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
@@ -13,12 +13,15 @@ import { environment } from '../../environments/environment';
   styleUrl: './profile.component.scss',
 })
 export class ProfileComponent implements OnInit {
+  @ViewChild('photoInput') photoInput!: ElementRef;
+
   user: any = null;
   loading = true;
   saving = false;
   error = '';
   success = '';
   editMode: Record<string, boolean> = {};
+  uploadingPhoto = false;
 
   constructor(
     private auth: AuthService,
@@ -70,6 +73,48 @@ export class ProfileComponent implements OnInit {
         this.error = err.error?.error || 'Error al actualizar';
         this.saving = false;
       },
+    });
+  }
+
+  get photoUrl(): string {
+    if (!this.user?.id) return '';
+    return `${environment.apiUrl}/users/${this.user.id}/photo?t=${new Date().getTime()}`;
+  }
+
+  onPhotoSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { this.error = 'Solo se permiten imagenes'; return; }
+    if (file.size > 2 * 1024 * 1024) { this.error = 'Maximo 2MB'; return; }
+
+    this.uploadingPhoto = true;
+    this.error = '';
+    this.success = '';
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.http.put(`${environment.apiUrl}/users/me/photo`, { photo: reader.result }).subscribe({
+        next: () => {
+          this.user.hasPhoto = true;
+          this.success = 'Foto actualizada';
+          this.uploadingPhoto = false;
+        },
+        error: (err) => {
+          this.error = err.error?.error || 'Error al subir foto';
+          this.uploadingPhoto = false;
+        },
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removePhoto() {
+    this.http.put(`${environment.apiUrl}/users/me/photo`, { photo: null }).subscribe({
+      next: () => {
+        this.user.hasPhoto = false;
+        this.success = 'Foto eliminada';
+      },
+      error: () => { this.error = 'Error al eliminar foto'; },
     });
   }
 

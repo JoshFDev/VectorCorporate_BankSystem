@@ -1,7 +1,7 @@
 import { Router, Response } from 'express';
 import User from '../models/User';
 import Account from '../models/Account';
-import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
+import { authMiddleware, AuthRequest, requireRole } from '../middleware/auth.middleware';
 import { logAudit } from '../services/audit.service';
 
 const router = Router();
@@ -36,7 +36,8 @@ router.get('/me', async (req: AuthRequest, res: Response) => {
                 dni: user.dni, phone: user.phone, address: user.address,
                 dateOfBirth: user.dateOfBirth, nationality: user.nationality,
                 occupation: user.occupation, role: user.role,
-                isVerified: user.isVerified, createdAt: user.createdAt
+                isVerified: user.isVerified, createdAt: user.createdAt,
+                hasPhoto: !!user.photo
             },
             accounts: accounts.map(a => ({
                 number: a.accountNumber, type: a.type, balance: a.balance,
@@ -163,6 +164,37 @@ router.patch('/me/deactivate', async (req: AuthRequest, res: Response) => {
         res.json({ message: 'Usuario desactivado exitosamente' });
     } catch (error) {
         res.status(500).json({ error: 'Error al desactivar usuario' });
+    }
+});
+
+// PUT /api/users/me/photo — upload profile photo
+router.put('/me/photo', async (req: AuthRequest, res: Response) => {
+    try {
+        const { photo } = req.body;
+        if (!photo || typeof photo !== 'string') {
+            return res.status(422).json({ error: 'Se requiere una imagen en base64' });
+        }
+
+        const buffer = Buffer.from(photo.replace(/^data:image\/\w+;base64,/, ''), 'base64');
+
+        await User.findByIdAndUpdate(req.user._id, { photo: buffer });
+
+        res.json({ message: 'Foto actualizada', hasPhoto: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar foto' });
+    }
+});
+
+// GET /api/users/:id/photo — serve profile photo
+router.get('/:id/photo', async (req: AuthRequest, res: Response) => {
+    try {
+        const user = await User.findById(req.params.id).select('photo');
+        if (!user || !user.photo) return res.status(404).json({ error: 'Foto no encontrada' });
+
+        res.set('Content-Type', 'image/jpeg');
+        res.send(user.photo);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener foto' });
     }
 });
 

@@ -23,6 +23,24 @@
     </div>
 
     <div class="profile-card" *ngIf="!loading; else load">
+      <!-- Photo -->
+      <div class="photo-section">
+        <div class="avatar" (click)="photoInput.click()">
+          <img *ngIf="user?.hasPhoto" [src]="photoUrl" alt="Foto" class="avatar-img" />
+          <div class="avatar-placeholder" *ngIf="!user?.hasPhoto">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="avatar-overlay">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </div>
+        </div>
+        <input #photoInput type="file" accept="image/*" hidden (change)="onPhotoSelected($event)" />
+        <div class="photo-actions">
+          <span *ngIf="uploadingPhoto" class="photo-uploading">Subiendo...</span>
+          <button *ngIf="user?.hasPhoto && !uploadingPhoto" class="btn-remove-photo" (click)="removePhoto()">Eliminar foto</button>
+        </div>
+      </div>
+
       <!-- Basic info -->
       <div class="section">
         <h3>Información personal</h3>
