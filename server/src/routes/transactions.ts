@@ -3,6 +3,7 @@ import Account from '../models/Account';
 import Transaction from '../models/Transaction';
 import { logAudit } from '../services/audit.service';
 import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
+import { notifyUser } from '../services/socket.service';
 
 const router = Router();
 router.use(authMiddleware);
@@ -211,6 +212,13 @@ router.post('/transfer', async (req: AuthRequest, res: Response) => {
             detail: `Transferencia de Q${amount} de ${fromAccount} a ${toAccount}`,
             ipAddress: req.ip, userAgent: req.headers['user-agent'],
             metadata: { fromAccount, toAccount, amount, sourceBalanceAfter: source.balance, destBalanceAfter: destination.balance }
+        });
+
+        notifyUser(destination.userId.toString(), 'transfer_received', {
+            fromAccount: source.accountNumber,
+            amount,
+            description: description || 'Transferencia recibida',
+            sourceBalance: destination.balance
         });
 
         res.json({

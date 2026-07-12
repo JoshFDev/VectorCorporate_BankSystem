@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { AccountService, AccountData } from '../../services/account.service';
 import { TransactionService } from '../../services/transaction.service';
 import { ModalComponent } from '../../components/modal/modal.component';
+import { SocketService } from '../../services/socket.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -14,7 +15,7 @@ import { ModalComponent } from '../../components/modal/modal.component';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   user: any = null;
   accounts: AccountData[] = [];
   selectedAccount: AccountData | null = null;
@@ -36,11 +37,15 @@ export class DashboardComponent implements OnInit {
   transferAmount = 0;
   transferTo = '';
 
+  notification: { message: string; amount: number } | null = null;
+  private notifTimer: any = null;
+
   constructor(
     private auth: AuthService,
     private accountSvc: AccountService,
     private txnSvc: TransactionService,
     private router: Router,
+    private socket: SocketService,
   ) {}
 
   ngOnInit() {
@@ -51,6 +56,20 @@ export class DashboardComponent implements OnInit {
       if (u) this.loadData();
       else this.router.navigate(['/login']);
     });
+
+    this.socket.transferReceived$.subscribe((data) => {
+      this.notification = {
+        message: `Transferencia de ${this.formatCurrency(data.amount)} de cuenta ${data.fromAccount}`,
+        amount: data.amount
+      };
+      if (this.notifTimer) clearTimeout(this.notifTimer);
+      this.notifTimer = setTimeout(() => this.notification = null, 6000);
+      if (this.selectedAccount) this.selectAccount(this.selectedAccount);
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.notifTimer) clearTimeout(this.notifTimer);
   }
 
   private loadData() {

@@ -1,18 +1,17 @@
 import app from './app';
-// Importa la aplicacion Express desde app.ts
-
+import { createServer } from 'http';
 import { connectDB } from './database';
-// Importa la funcion connectDB desde database.ts
-
+import { initSocket } from './services/socket.service';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
-// Toma el puerto de variable de entorno PORT, si no existe usa 3000
 
-// Primero conecta a MongoDB, luego inicia el servidor
 connectDB().then(() => {
-    app.listen(PORT, () => {
+    const httpServer = createServer(app);
+    initSocket(httpServer);
+
+    httpServer.listen(PORT, () => {
         console.log(`Server on port ${PORT}`);
     });
 });
