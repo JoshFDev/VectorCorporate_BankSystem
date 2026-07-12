@@ -24,6 +24,22 @@
       </button>
     </div>
 
+    <!-- Filters -->
+    <div class="filters">
+      <select [(ngModel)]="filterType" (change)="applyFilters()">
+        <option value="">Todas</option>
+        <option value="deposit">Depósitos</option>
+        <option value="withdrawal">Retiros</option>
+        <option value="transfer_in">Recibidas</option>
+        <option value="transfer_out">Enviadas</option>
+      </select>
+      <input type="date" [(ngModel)]="filterDateFrom" (change)="applyFilters()" title="Desde" />
+      <input type="date" [(ngModel)]="filterDateTo" (change)="applyFilters()" title="Hasta" />
+      <select [(ngModel)]="limit" (change)="changeLimit(limit)">
+        <option *ngFor="let l of availableLimits" [value]="l">{{ l }} por pág</option>
+      </select>
+    </div>
+
     <div class="card" *ngIf="!loading; else load">
       <div class="txn-header">
         <span class="txn-count">{{ total }} transaccion{{ total !== 1 ? 'es' : '' }}</span>
@@ -32,7 +48,10 @@
 
       <div class="txn-item" *ngFor="let t of transactions">
         <div class="txn-icon" [class]="txnClass(t.type)">
-          {{ t.type === 'deposit' ? '⬇' : t.type === 'withdrawal' ? '⬆' : t.type === 'transfer_in' ? '↘' : '↗' }}
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="t.type === 'deposit'"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="t.type === 'withdrawal'"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="t.type === 'transfer_in'"><polyline points="17 1 21 5 17 9"/><line x1="3" y1="12" x2="21" y2="12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" *ngIf="t.type === 'transfer_out'"><polyline points="7 23 3 19 7 15"/><line x1="21" y1="12" x2="3" y2="12"/></svg>
         </div>
         <div class="txn-info">
           <div class="txn-label">{{ txnLabel(t.type) }}</div>
@@ -47,10 +66,11 @@
       <div class="empty" *ngIf="transactions.length === 0">Sin transacciones</div>
 
       <!-- Pagination -->
-      <div class="pagination" *ngIf="pages.length > 1">
-        <button class="page-btn" [disabled]="page === 1" (click)="goPage(page - 1)">Anterior</button>
+      <div class="pagination" *ngIf="totalPages > 1">
+        <button class="page-btn" [disabled]="page <= 1" (click)="goPage(page - 1)">Anterior</button>
         <button *ngFor="let p of pages" class="page-btn" [class.active]="p === page" (click)="goPage(p)">{{ p }}</button>
-        <button class="page-btn" [disabled]="page === pages.length" (click)="goPage(page + 1)">Siguiente</button>
+        <button class="page-btn" [disabled]="page >= totalPages" (click)="goPage(page + 1)">Siguiente</button>
+        <span class="page-info">Pág {{ page }} de {{ totalPages }}</span>
       </div>
     </div>
   </main>

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AccountService, AccountData } from '../../services/account.service';
@@ -7,7 +8,7 @@ import { AccountService, AccountData } from '../../services/account.service';
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './transactions.component.html',
   styleUrl: './transactions.component.scss',
 })
@@ -20,6 +21,12 @@ export class TransactionsComponent implements OnInit {
   page = 1;
   limit = 10;
   total = 0;
+
+  filterType = '';
+  filterDateFrom = '';
+  filterDateTo = '';
+
+  availableLimits = [5, 10, 20, 50];
 
   constructor(
     private auth: AuthService,
@@ -50,6 +57,20 @@ export class TransactionsComponent implements OnInit {
   selectAccount(acc: AccountData) {
     this.selectedAccount = acc;
     this.page = 1;
+    this.filterType = '';
+    this.filterDateFrom = '';
+    this.filterDateTo = '';
+    this.loadTransactions();
+  }
+
+  applyFilters() {
+    this.page = 1;
+    this.loadTransactions();
+  }
+
+  changeLimit(limit: number) {
+    this.limit = limit;
+    this.page = 1;
     this.loadTransactions();
   }
 
@@ -58,7 +79,20 @@ export class TransactionsComponent implements OnInit {
     this.loading = true;
     this.accountSvc.getTransactions(this.selectedAccount.number, this.page, this.limit).subscribe({
       next: (res) => {
-        this.transactions = res.transactions || [];
+        let txns = res.transactions || [];
+        if (this.filterType) {
+          txns = txns.filter((t: any) => t.type === this.filterType);
+        }
+        // Date filtering is done on client side from loaded page for simplicity
+        if (this.filterDateFrom) {
+          const from = new Date(this.filterDateFrom).getTime();
+          txns = txns.filter((t: any) => new Date(t.createdAt).getTime() >= from);
+        }
+        if (this.filterDateTo) {
+          const to = new Date(this.filterDateTo).getTime() + 86400000;
+          txns = txns.filter((t: any) => new Date(t.createdAt).getTime() <= to);
+        }
+        this.transactions = txns;
         this.total = res.pagination?.total || 0;
         this.loading = false;
       },
@@ -66,12 +100,20 @@ export class TransactionsComponent implements OnInit {
     });
   }
 
+  get totalPages(): number {
+    return Math.ceil(this.total / this.limit);
+  }
+
   get pages(): number[] {
-    const totalPages = Math.ceil(this.total / this.limit);
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const p = this.totalPages;
+    // Show max 10 page numbers centered around current
+    const start = Math.max(1, this.page - 5);
+    const end = Math.min(p, start + 9);
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
   goPage(p: number) {
+    if (p < 1 || p > this.totalPages) return;
     this.page = p;
     this.loadTransactions();
   }
