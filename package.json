@@ -5,7 +5,10 @@
     "dev": "concurrently -n db,api,web -c blue,green,yellow \"mongod\" \"pnpm --prefix server dev\" \"pnpm --prefix appBankSystem start\"",
     "dev:api": "pnpm --prefix server dev",
     "dev:web": "pnpm --prefix appBankSystem start",
-    "build": "pnpm --prefix server build && pnpm --prefix appBankSystem build"
+    "build": "pnpm --prefix server build && pnpm --prefix appBankSystem build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build"
   },
   "dependencies": {
     "concurrently": "^10.0.3"

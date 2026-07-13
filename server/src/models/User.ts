@@ -71,4 +71,9 @@ const userSchema = new Schema<IUser>({
     isActive: { type: Boolean, default: true },
 });
 
+userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ dni: 1 }, { unique: true });
+userSchema.index({ role: 1, isActive: 1 });
+userSchema.index({ createdAt: -1 });
+
 export default mongoose.model<IUser>('User', userSchema);
