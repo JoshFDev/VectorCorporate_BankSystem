@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
+import { env } from '../config/env';
 
 export interface AuthRequest extends Request {
     user?: any;
@@ -15,7 +16,7 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: Next
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'vectorbank_secret_key') as { id: string };
+        const decoded = jwt.verify(token, env.JWT_SECRET) as { id: string };
         const user = await User.findById(decoded.id).select('-password');
         if (!user) {
             return res.status(401).json({ error: 'Usuario no encontrado' });

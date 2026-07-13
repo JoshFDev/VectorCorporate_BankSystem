@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { env } from '../config/env';
 
 export async function hashPassword(password: string): Promise<string> {
     const salt = await bcrypt.genSalt(10);
@@ -11,6 +12,5 @@ export async function comparePassword(password: string, hash: string): Promise<b
 }
 
 export function generateToken(userId: string): string {
-    const secret = process.env.JWT_SECRET || 'vectorbank_secret_key';
-    return jwt.sign({ id: userId }, secret, { expiresIn: '24h' });
+    return jwt.sign({ id: userId }, env.JWT_SECRET, { expiresIn: '24h' });
 }

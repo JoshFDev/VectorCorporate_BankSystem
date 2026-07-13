@@ -7,6 +7,7 @@ import { validateEmail } from '../services/validation';
 import { generateAccountNumber } from '../services/account.service';
 import { logAudit } from '../services/audit.service';
 import { sendPasswordResetEmail } from '../services/email.service';
+import { authMiddleware, AuthRequest } from '../middleware/auth.middleware';
 
 const router = Router();
 
@@ -180,17 +181,14 @@ router.post('/login', async (req: Request, res: Response) => {
  *       422:
  *         description: Campos requeridos
  */
-router.put('/change-password', async (req: Request, res: Response) => {
+router.put('/change-password', authMiddleware, async (req: AuthRequest, res: Response) => {
     try {
         const { currentPassword, newPassword } = req.body;
         if (!currentPassword || !newPassword) {
             return res.status(422).json({ error: 'Contraseña actual y nueva son requeridas' });
         }
 
-        const { email } = req.body;
-        if (!email) return res.status(422).json({ error: 'Email requerido' });
-
-        const user = await User.findOne({ email });
+        const user = await User.findById(req.user._id);
         if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
         const isMatch = await comparePassword(currentPassword, user.password);

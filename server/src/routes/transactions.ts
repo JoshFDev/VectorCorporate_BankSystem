@@ -181,6 +181,9 @@ router.post('/transfer', async (req: AuthRequest, res: Response) => {
 
         const source = await Account.findOne({ accountNumber: fromAccount });
         if (!source) return res.status(404).json({ error: 'Cuenta origen no encontrada' });
+        if (source.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'No tienes permiso para usar esta cuenta' });
+        }
         const destination = await Account.findOne({ accountNumber: toAccount });
         if (!destination) return res.status(404).json({ error: 'Cuenta destino no encontrada' });
         if (source.balance < amount) return res.status(400).json({ error: 'Saldo insuficiente' });
