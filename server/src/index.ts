@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import './config/env';
+import { initEnv } from './config/env';
+initEnv();
+
 import app from './app';
 import { createServer } from 'http';
 import { connectDB } from './database';
