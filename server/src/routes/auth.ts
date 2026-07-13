@@ -217,17 +217,20 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
         if (!email) return res.status(422).json({ error: 'Email requerido' });
 
         const user = await User.findOne({ email });
-        // Always return success to avoid email enumeration
         if (!user) return res.json({ message: 'Si el correo existe, recibiras un enlace de recuperacion' });
 
         const token = crypto.randomBytes(32).toString('hex');
         user.resetPasswordToken = token;
-        user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+        user.resetPasswordExpires = new Date(Date.now() + 3600000);
         await user.save();
 
-        await sendPasswordResetEmail(email, token);
+        try {
+            await sendPasswordResetEmail(email, token);
+        } catch (emailError) {
+            console.error('Email send failed (token still valid):', (emailError as Error).message);
+        }
 
-        res.json({ message: 'Si el correo existe, recibiras un enlace de recuperacion' });
+        res.json({ message: 'Si el correo existe, recibiras un enlace de recuperacion', ...(process.env.NODE_ENV === 'development' && { token }) });
     } catch (error) {
         res.status(500).json({ error: 'Error al enviar correo de recuperacion' });
     }

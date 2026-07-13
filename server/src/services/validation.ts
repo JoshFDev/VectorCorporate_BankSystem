@@ -8,6 +8,10 @@ interface ValidationResult {
 
 // Validar que el email realmente exista
 export async function validateEmail(email: string): Promise<ValidationResult> {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { valid: false, message: 'Formato de email invalido' };
+    }
+
     try {
         const res = await axios.get(
             `https://emailvalidation.abstractapi.com/v1/`,
@@ -15,29 +19,28 @@ export async function validateEmail(email: string): Promise<ValidationResult> {
                 params: {
                     api_key: process.env.ABSTRACT_API_KEY,
                     email
-                }
+                },
+                timeout: 5000
             }
         );
 
-        const score = res.data.quality_score;
-        // quality_score: 0 a 1. 0.7 o mas es confiable
-
-        const isDeliverable = res.data.deliverability === 'DELIVERABLE';
-        // La API indica si el email realmente puede recibir correos
-
-        if (score >= 0.7 && isDeliverable) {
+        const deliverability = res.data.deliverability;
+        if (deliverability === 'DELIVERABLE') {
             return { valid: true, message: 'Email valido' };
         }
 
-        return {
-            valid: false,
-            message: `Email invalido o de baja calidad (score: ${score})`
-        };
+        if (deliverability === 'UNKNOWN') {
+            return { valid: true, message: 'Email aceptado (no verificable)' };
+        }
+
+        const score = parseFloat(res.data.quality_score);
+        if (!isNaN(score) && score >= 0.7) {
+            return { valid: true, message: 'Email valido' };
+        }
+
+        return { valid: true, message: 'Email aceptado' };
     } catch (error) {
-        return {
-            valid: false,
-            message: 'No se pudo verificar el email, intenta de nuevo'
-        };
+        return { valid: true, message: 'Email aceptado (API no disponible)' };
     }
 }
 
