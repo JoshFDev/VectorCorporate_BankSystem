@@ -1,4 +1,5 @@
 import express from 'express';
+import mongoose from 'mongoose';
 import morgan from 'morgan';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -46,6 +47,20 @@ app.use('/api/notifications', notificationRoutes);
 
 app.get('/', (_req, res) => {
     res.json({ message: 'VectorBank API running' });
+});
+
+app.get('/health', (_req, res) => {
+    const dbState = mongoose.connection.readyState;
+    const dbStatus = dbState === 1 ? 'connected' : dbState === 2 ? 'connecting' : 'disconnected';
+    const status = dbState === 1 ? 200 : 503;
+
+    res.status(status).json({
+        status: status === 200 ? 'ok' : 'degraded',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        database: { status: dbStatus, name: mongoose.connection.name || 'unknown' },
+        memory: { rss: Math.round(process.memoryUsage().rss / 1024 / 1024) + 'MB' },
+    });
 });
 
 app.use(errorHandler);
