@@ -163,6 +163,20 @@
   .page-info { font-size: 13px; color: #94a3b8; margin-left: 8px; }
 }
 
+.export-btns {
+  display: flex; gap: 6px; margin-left: auto;
+}
+
+.export-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border: 1.5px solid #e2e8f0; border-radius: 6px;
+  font-size: 12px; font-weight: 500; cursor: pointer;
+  background: #fff; color: #64748b; transition: all 0.2s;
+  &:hover { border-color: #cbd5e1; color: #1e293b; }
+  &.csv:hover { border-color: #16a34a; color: #16a34a; }
+  &.pdf:hover { border-color: #dc2626; color: #dc2626; }
+}
+
 .loading {
   display: flex; justify-content: center; padding: 60px 0;
 }

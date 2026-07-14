@@ -10,6 +10,7 @@ router.use(authMiddleware);
 router.post('/', validate(createAccountSchema), accountController.createAccount);
 router.get('/:accountNumber', accountController.getAccount);
 router.get('/:accountNumber/transactions', accountController.getTransactions);
+router.get('/:accountNumber/export', accountController.exportStatement);
 router.delete('/:accountNumber', accountController.deactivateAccount);
 
 export default router;

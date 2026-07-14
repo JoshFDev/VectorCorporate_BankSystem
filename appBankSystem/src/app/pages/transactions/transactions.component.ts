@@ -5,6 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AccountService, AccountData } from '../../services/account.service';
 import { NotificationBellComponent } from '../../components/notification-bell.component';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-transactions',
@@ -139,5 +140,13 @@ export class TransactionsComponent implements OnInit {
 
   logout() {
     this.auth.logout();
+  }
+
+  exportStatement(format: 'csv' | 'pdf') {
+    if (!this.selectedAccount) return;
+    let url = `${environment.apiUrl}/accounts/${this.selectedAccount.number}/export?format=${format}`;
+    if (this.filterDateFrom) url += `&from=${this.filterDateFrom}`;
+    if (this.filterDateTo) url += `&to=${this.filterDateTo}`;
+    window.open(url, '_blank');
   }
 }
