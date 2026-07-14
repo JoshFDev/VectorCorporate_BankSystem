@@ -7,6 +7,8 @@ export interface IAccount extends Document {
     balance: number;
     currency: string;
     isActive: boolean;
+    dailyTransferLimit: number | null;
+    weeklyTransferLimit: number | null;
     createdAt: Date;
 }
 
@@ -39,6 +41,14 @@ const accountSchema = new Schema<IAccount>({
     isActive: {
         type: Boolean,
         default: true
+    },
+    dailyTransferLimit: {
+        type: Number,
+        default: null
+    },
+    weeklyTransferLimit: {
+        type: Number,
+        default: null
     },
     createdAt: { type: Date, default: Date.now }
 });

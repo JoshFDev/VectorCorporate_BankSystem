@@ -210,6 +210,73 @@ export async function getTransactions(req: AuthRequest, res: Response) {
     }
 }
 
+export async function getTransferLimits(req: AuthRequest, res: Response) {
+    try {
+        const account = await Account.findOne({ accountNumber: req.params.accountNumber });
+        if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
+        if (account.userId.toString() !== req.user._id.toString()) return res.status(403).json({ error: 'No tienes acceso' });
+
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const weekStart = new Date();
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+        weekStart.setHours(0, 0, 0, 0);
+
+        const [todayAgg, weekAgg] = await Promise.all([
+            Transaction.aggregate([
+                { $match: { accountId: account._id, type: 'transfer_out', createdAt: { $gte: todayStart } } },
+                { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } }
+            ]),
+            Transaction.aggregate([
+                { $match: { accountId: account._id, type: 'transfer_out', createdAt: { $gte: weekStart } } },
+                { $group: { _id: null, total: { $sum: '$amount' }, count: { $sum: 1 } } }
+            ])
+        ]);
+
+        res.json({
+            daily: {
+                limit: account.dailyTransferLimit,
+                used: todayAgg[0]?.total || 0,
+                count: todayAgg[0]?.count || 0,
+            },
+            weekly: {
+                limit: account.weeklyTransferLimit,
+                used: weekAgg[0]?.total || 0,
+                count: weekAgg[0]?.count || 0,
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener limites' });
+    }
+}
+
+export async function setTransferLimits(req: AuthRequest, res: Response) {
+    try {
+        const account = await Account.findOne({ accountNumber: req.params.accountNumber });
+        if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
+        if (account.userId.toString() !== req.user._id.toString()) return res.status(403).json({ error: 'No tienes acceso' });
+
+        const { dailyLimit, weeklyLimit } = req.body;
+
+        if (dailyLimit !== undefined) {
+            account.dailyTransferLimit = dailyLimit === null ? null : Math.max(0, Number(dailyLimit));
+        }
+        if (weeklyLimit !== undefined) {
+            account.weeklyTransferLimit = weeklyLimit === null ? null : Math.max(0, Number(weeklyLimit));
+        }
+
+        await account.save();
+
+        res.json({
+            message: 'Limites actualizados',
+            daily: account.dailyTransferLimit,
+            weekly: account.weeklyTransferLimit
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar limites' });
+    }
+}
+
 export async function deactivateAccount(req: AuthRequest, res: Response) {
     try {
         const account = await Account.findOne({ accountNumber: req.params.accountNumber });

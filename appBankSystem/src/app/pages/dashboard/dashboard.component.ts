@@ -54,7 +54,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16, font: { size: 12 } } },
       tooltip: {
         callbacks: {
-          label: (ctx) => {
+          label: (ctx: any) => {
             const val = ctx.parsed.y;
             return `${ctx.dataset.label}: Q${val.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
           }
@@ -68,7 +68,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         grid: { color: '#e2e8f0' },
         ticks: {
           font: { size: 11 },
-          callback: (val) => `Q${Number(val).toLocaleString('es-GT')}`
+          callback: (val: any) => `Q${Number(val).toLocaleString('es-GT')}`
         }
       }
     }
@@ -82,7 +82,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 12 } } },
       tooltip: {
         callbacks: {
-          label: (ctx) => {
+          label: (ctx: any) => {
             const val = ctx.parsed;
             const total = ctx.dataset.data.reduce((a: number, b: number) => a + b, 0);
             const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0';

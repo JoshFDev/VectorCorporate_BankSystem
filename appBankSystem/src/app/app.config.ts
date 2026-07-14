@@ -5,13 +5,14 @@ import { routes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
 import { errorInterceptor } from './interceptors/error.interceptor';
 import { loadingInterceptor } from './interceptors/loading.interceptor';
-import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([loadingInterceptor, authInterceptor, errorInterceptor])),
-    provideCharts(withDefaultRegisterables())
+    provideHttpClient(withInterceptors([loadingInterceptor, authInterceptor, errorInterceptor]))
   ]
 };

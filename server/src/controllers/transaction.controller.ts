@@ -97,6 +97,45 @@ export async function transfer(req: AuthRequest, res: Response) {
         if (!destination) return res.status(404).json({ error: 'Cuenta destino no encontrada' });
         if (source.balance < amount) return res.status(400).json({ error: 'Saldo insuficiente' });
 
+        if (source.dailyTransferLimit !== null) {
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            const todayTransfers = await Transaction.aggregate([
+                { $match: { accountId: source._id, type: 'transfer_out', createdAt: { $gte: todayStart } } },
+                { $group: { _id: null, total: { $sum: '$amount' } } }
+            ]);
+            const todayTotal = (todayTransfers[0]?.total || 0) + amount;
+            if (todayTotal > source.dailyTransferLimit) {
+                return res.status(400).json({
+                    error: `Limite diario excedido. Limite: Q${source.dailyTransferLimit.toFixed(2)}, ya transferido hoy: Q${(todayTransfers[0]?.total || 0).toFixed(2)}`,
+                    limitType: 'daily',
+                    limit: source.dailyTransferLimit,
+                    used: todayTransfers[0]?.total || 0,
+                    requested: amount
+                });
+            }
+        }
+
+        if (source.weeklyTransferLimit !== null) {
+            const weekStart = new Date();
+            weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+            weekStart.setHours(0, 0, 0, 0);
+            const weekTransfers = await Transaction.aggregate([
+                { $match: { accountId: source._id, type: 'transfer_out', createdAt: { $gte: weekStart } } },
+                { $group: { _id: null, total: { $sum: '$amount' } } }
+            ]);
+            const weekTotal = (weekTransfers[0]?.total || 0) + amount;
+            if (weekTotal > source.weeklyTransferLimit) {
+                return res.status(400).json({
+                    error: `Limite semanal excedido. Limite: Q${source.weeklyTransferLimit.toFixed(2)}, ya transferido esta semana: Q${(weekTransfers[0]?.total || 0).toFixed(2)}`,
+                    limitType: 'weekly',
+                    limit: source.weeklyTransferLimit,
+                    used: weekTransfers[0]?.total || 0,
+                    requested: amount
+                });
+            }
+        }
+
         const sourceBalanceBefore = source.balance;
         source.balance -= amount;
         await source.save();

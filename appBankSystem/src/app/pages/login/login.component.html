@@ -1,1 +1,222 @@
-<p>login works!</p>
+<div class="login-wrapper">
+  <div class="login-left">
+    <div class="left-particles">
+      <div *ngFor="let p of particles" class="particle"
+        [style.width.px]="p.size" [style.height.px]="p.size"
+        [style.left.%]="p.left" [style.animation-delay.s]="p.delay"
+        [style.animation-duration.s]="p.duration"></div>
+    </div>
+    <div class="left-overlay">
+      <img src="assets/images/logoBanco.png" alt="VectorBank" class="left-logo" />
+      <h2 class="left-title">VectorBank</h2>
+      <p class="left-subtitle">Tu banco digital de confianza</p>
+      <p class="left-greeting">{{ greeting }}</p>
+    </div>
+  </div>
+
+  <div class="login-right" [class.shake]="shakeError">
+    <div class="right-content">
+
+      <div class="success-check" *ngIf="loginSuccess">
+        <div class="check-circle">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <p class="check-text">¡Bienvenido!</p>
+        <p class="check-subtext">Redirigiendo al dashboard...</p>
+      </div>
+
+      <ng-container *ngIf="!loginSuccess">
+        <div class="card-header">
+          <img src="assets/images/logoBanco.png" alt="VectorBank" class="brand-logo" />
+          <h1 class="brand-title">Bienvenido</h1>
+          <p class="subtitle">Inicia sesión en tu cuenta</p>
+        </div>
+
+        <div class="mode-toggle">
+          <div class="slider" [class.right]="mode === 'fingerprint'"></div>
+          <button type="button" [class.active]="mode === 'password'" (click)="switchMode('password')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Contraseña
+          </button>
+          <button type="button" [class.active]="mode === 'fingerprint'" (click)="switchMode('fingerprint')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+              <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+              <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+              <path d="M2 12a10 10 0 0 1 18-6"/>
+              <path d="M2 16h.01"/>
+              <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+              <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+              <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+              <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+            </svg>
+            Huella
+          </button>
+        </div>
+
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+          <!-- EMAIL -->
+          <div class="field">
+            <div class="input-wrap" [class.focused]="focusedField === 'email'"
+              [class.has-value]="loginForm.get('email')?.value"
+              [class.error]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+              <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="4" width="20" height="16" rx="2"/>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+              </svg>
+              <input formControlName="email" type="email" placeholder=" "
+                (focus)="focusedField = 'email'" (blur)="focusedField = ''" autocomplete="email" />
+              <label>Correo electrónico</label>
+            </div>
+          </div>
+
+          <!-- MODE PANELS -->
+          <div class="mode-panels">
+
+            <!-- Password panel -->
+            <div class="mode-panel" [class.panel-active]="mode === 'password'" [class.panel-exit]="mode === 'fingerprint'">
+              <div class="field">
+                <div class="input-wrap" [class.focused]="focusedField === 'password'"
+                  [class.has-value]="loginForm.get('password')?.value"
+                  [class.error]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder=" "
+                    (focus)="focusedField = 'password'" (blur)="focusedField = ''" autocomplete="current-password" />
+                  <label>Contraseña</label>
+                  <button type="button" class="toggle-password" (click)="showPassword = !showPassword" tabindex="-1">
+                    <svg *ngIf="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                    <svg *ngIf="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="password-strength" *ngIf="loginForm.get('password')?.value">
+                <div class="strength-bar-bg">
+                  <div class="strength-bar-fill"
+                    [style.width.%]="passwordStrength * 100"
+                    [style.background]="passwordStrengthColor"></div>
+                </div>
+                <p class="strength-text" [style.color]="passwordStrengthColor">{{ passwordStrengthLabel }}</p>
+              </div>
+
+              <p class="forgot-link"><a routerLink="/forgot-password">¿Olvidaste tu contraseña?</a></p>
+            </div>
+
+            <!-- Fingerprint panel -->
+            <div class="mode-panel" [class.panel-active]="mode === 'fingerprint'" [class.panel-exit]="mode === 'password'">
+              <div class="fingerprint-area" (click)="scanFingerprint()" [class.scanning]="scanning" [class.error]="fingerprintError">
+                <div class="fingerprint-ripple" *ngIf="scanning">
+                  <div class="ring ring1"></div>
+                  <div class="ring ring2"></div>
+                  <div class="ring ring3"></div>
+                </div>
+                <div class="fingerprint-icon">
+                  <svg *ngIf="!scanning && !fingerprintError" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+                    <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+                    <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+                    <path d="M2 12a10 10 0 0 1 18-6"/>
+                    <path d="M2 16h.01"/>
+                    <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+                    <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+                    <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+                    <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+                  </svg>
+                  <div *ngIf="scanning" class="spinner-ring">
+                    <div class="spinner-inner"></div>
+                  </div>
+                  <svg *ngIf="fingerprintError && !scanning" width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                  </svg>
+                </div>
+                <p class="fingerprint-label">
+                  {{ scanning ? 'Escaneando huella...' : fingerprintError ? 'No detectada. Toca para reintentar' : 'Coloca tu dedo en el sensor' }}
+                </p>
+                <div class="fingerprint-hint" *ngIf="!scanning && !fingerprintError">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                  </svg>
+                  Necesitas el sensor conectado
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- REMEMBER ME -->
+          <div class="options-row">
+            <label class="remember-me" (click)="toggleRememberMe()">
+              <input type="checkbox" [checked]="rememberMe" />
+              <span class="toggle-track"></span>
+              <span class="toggle-label">Recordarme</span>
+            </label>
+          </div>
+
+          <!-- SUBMIT -->
+          <button type="submit" class="btn-submit" [disabled]="loginForm.invalid || scanning">
+            <span class="btn-text" *ngIf="!submitting">
+              {{ mode === 'password' ? 'Iniciar sesión' : 'Iniciar sesión con huella' }}
+            </span>
+            <span class="btn-loading" *ngIf="submitting">
+              <span class="btn-spinner"></span>
+              Verificando...
+            </span>
+          </button>
+
+          <div class="error-container">
+            <p *ngIf="error" class="alert alert-error">{{ error }}</p>
+          </div>
+        </form>
+
+        <div class="divider" *ngIf="mode === 'password'">
+          <span>o continúa con</span>
+        </div>
+
+        <div class="social-buttons" *ngIf="mode === 'password'">
+          <button type="button" class="btn-social" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A10.96 10.96 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Google
+          </button>
+          <button type="button" class="btn-social" disabled>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#333">
+              <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+            </svg>
+            Apple
+          </button>
+        </div>
+
+        <div class="keyboard-hint" *ngIf="mode === 'password'">
+          Presiona <kbd>Enter</kbd> para iniciar sesión
+        </div>
+
+        <div class="card-footer">
+          <p class="register-link">¿No tienes cuenta? <a routerLink="/register">Regístrate aquí</a></p>
+        </div>
+      </ng-container>
+
+    </div>
+  </div>
+</div>

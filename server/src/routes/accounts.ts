@@ -60,6 +60,60 @@ router.get('/:accountNumber', accountController.getAccount);
 
 /**
  * @swagger
+ * /api/accounts/{accountNumber}/transfer-limits:
+ *   get:
+ *     tags: [Accounts]
+ *     summary: Obtener limites de transferencia y uso actual
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: accountNumber
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Limites y uso actual
+ */
+router.get('/:accountNumber/transfer-limits', accountController.getTransferLimits);
+
+/**
+ * @swagger
+ * /api/accounts/{accountNumber}/transfer-limits:
+ *   put:
+ *     tags: [Accounts]
+ *     summary: Configurar limites de transferencia
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: accountNumber
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               dailyLimit:
+ *                 type: number
+ *                 nullable: true
+ *                 description: Limite diario en Q (null para sin limite)
+ *               weeklyLimit:
+ *                 type: number
+ *                 nullable: true
+ *                 description: Limite semanal en Q (null para sin limite)
+ *     responses:
+ *       200:
+ *         description: Limites actualizados
+ */
+router.put('/:accountNumber/transfer-limits', accountController.setTransferLimits);
+
+/**
+ * @swagger
  * /api/accounts/{accountNumber}/transactions:
  *   get:
  *     tags: [Accounts]
