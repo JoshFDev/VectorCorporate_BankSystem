@@ -12,6 +12,7 @@ router.get('/me/accounts', userController.getMyAccounts);
 router.put('/me', validate(updateProfileSchema), userController.updateMe);
 router.patch('/me/deactivate', userController.deactivateMe);
 router.put('/me/photo', validate(photoSchema), userController.uploadPhoto);
+router.patch('/me/notifications', userController.updateNotificationPreferences);
 router.get('/:id/photo', userController.getPhoto);
 
 export default router;

@@ -6,12 +6,13 @@ import { AuthService } from '../../services/auth.service';
 import { AccountService, AccountData } from '../../services/account.service';
 import { TransactionService } from '../../services/transaction.service';
 import { ModalComponent } from '../../components/modal/modal.component';
+import { NotificationBellComponent } from '../../components/notification-bell.component';
 import { SocketService } from '../../services/socket.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent, RouterLink],
+  imports: [CommonModule, FormsModule, ModalComponent, NotificationBellComponent, RouterLink],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })

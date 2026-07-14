@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AccountService, AccountData } from '../../services/account.service';
+import { NotificationBellComponent } from '../../components/notification-bell.component';
 
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, NotificationBellComponent],
   templateUrl: './transactions.component.html',
   styleUrl: './transactions.component.scss',
 })

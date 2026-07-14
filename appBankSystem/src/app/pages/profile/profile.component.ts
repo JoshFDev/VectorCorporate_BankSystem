@@ -4,12 +4,13 @@ import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { FingerprintService } from '../../services/fingerprint.service';
+import { NotificationBellComponent } from '../../components/notification-bell.component';
 import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, NotificationBellComponent],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
 })
@@ -28,6 +29,7 @@ export class ProfileComponent implements OnInit {
   fpStep: 'idle' | 'scanning1' | 'scanned1' | 'scanning2' | 'comparing' | 'registering' | 'done' | 'error' = 'idle';
   sensorConnected = false;
   fpMessage = '';
+  emailNotifications = true;
 
   constructor(
     private auth: AuthService,
@@ -53,12 +55,25 @@ export class ProfileComponent implements OnInit {
     this.http.get<any>(`${environment.apiUrl}/users/me`).subscribe({
       next: (res) => {
         this.user = res.user;
+        this.emailNotifications = res.user.emailNotifications ?? true;
         this.loading = false;
       },
       error: () => {
         this.error = 'Error al cargar perfil';
         this.loading = false;
       },
+    });
+  }
+
+  toggleEmailNotifications() {
+    this.emailNotifications = !this.emailNotifications;
+    this.http.patch(`${environment.apiUrl}/users/me/notifications`, {
+      emailNotifications: this.emailNotifications
+    }).subscribe({
+      error: () => {
+        this.emailNotifications = !this.emailNotifications;
+        this.error = 'Error al actualizar preferencias';
+      }
     });
   }
 

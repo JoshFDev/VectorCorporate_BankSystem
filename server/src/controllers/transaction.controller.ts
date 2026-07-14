@@ -1,9 +1,42 @@
 import { Response } from 'express';
 import Account from '../models/Account';
+import User from '../models/User';
 import Transaction from '../models/Transaction';
 import { logAudit } from '../services/audit.service';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { notifyUser } from '../services/socket.service';
+import { createNotification } from '../services/notification.service';
+import { sendTransactionEmail } from '../services/email.service';
+
+const TYPE_LABELS: Record<string, string> = {
+    deposit: 'Deposito',
+    withdrawal: 'Retiro',
+    transfer_in: 'Transferencia recibida',
+    transfer_out: 'Transferencia enviada',
+};
+
+async function notifyAndEmail(userId: string, type: string, title: string, message: string, amount: number, accountNumber: string, relatedAccount?: string, balanceAfter?: number) {
+    const userIdStr = userId.toString();
+
+    createNotification({ userId: userIdStr, type: type as any, title, message, amount, accountNumber, relatedAccount }).catch(() => {});
+
+    notifyUser(userIdStr, 'notification', { type, title, message, amount, accountNumber, relatedAccount, createdAt: new Date().toISOString() });
+
+    if (balanceAfter !== undefined) {
+        const user = await User.findById(userId);
+        if (user?.emailNotifications) {
+            sendTransactionEmail({
+                to: user.email,
+                userName: user.name,
+                type: type as any,
+                amount,
+                accountNumber,
+                relatedAccount,
+                balanceAfter,
+            }).catch(() => {});
+        }
+    }
+}
 
 export async function deposit(req: AuthRequest, res: Response) {
     try {
@@ -19,6 +52,8 @@ export async function deposit(req: AuthRequest, res: Response) {
         await transaction.save();
 
         await logAudit({ userId: account.userId.toString(), action: 'deposit', detail: `Deposito de Q${amount} a cuenta ${accountNumber}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { accountNumber, amount, balanceAfter: account.balance } });
+
+        await notifyAndEmail(account.userId, 'deposit', 'Deposito recibido', `Se deposito Q${amount.toFixed(2)} en tu cuenta ${accountNumber}`, amount, accountNumber, undefined, account.balance);
 
         res.json({ message: 'Deposito exitoso', account: { number: account.accountNumber, balance: account.balance }, transaction: { id: transaction._id, type: transaction.type, amount: transaction.amount, balanceBefore: transaction.balanceBefore, balanceAfter: transaction.balanceAfter } });
     } catch (error) {
@@ -41,6 +76,8 @@ export async function withdraw(req: AuthRequest, res: Response) {
         await transaction.save();
 
         await logAudit({ userId: account.userId.toString(), action: 'withdrawal', detail: `Retiro de Q${amount} de cuenta ${accountNumber}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { accountNumber, amount, balanceAfter: account.balance } });
+
+        await notifyAndEmail(account.userId, 'withdrawal', 'Retiro realizado', `Se retiraron Q${amount.toFixed(2)} de tu cuenta ${accountNumber}`, amount, accountNumber, undefined, account.balance);
 
         res.json({ message: 'Retiro exitoso', account: { number: account.accountNumber, balance: account.balance }, transaction: { id: transaction._id, type: transaction.type, amount: transaction.amount, balanceBefore: transaction.balanceBefore, balanceAfter: transaction.balanceAfter } });
     } catch (error) {
@@ -76,7 +113,9 @@ export async function transfer(req: AuthRequest, res: Response) {
 
         await logAudit({ userId: source.userId.toString(), action: 'transfer', detail: `Transferencia de Q${amount} de ${fromAccount} a ${toAccount}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { fromAccount, toAccount, amount } });
 
-        notifyUser(destination.userId.toString(), 'transfer_received', { fromAccount: source.accountNumber, amount, description: description || 'Transferencia recibida', sourceBalance: destination.balance });
+        await notifyAndEmail(source.userId, 'transfer_out', 'Transferencia enviada', `Enviaste Q${amount.toFixed(2)} a la cuenta ${toAccount}`, amount, fromAccount, toAccount, source.balance);
+
+        await notifyAndEmail(destination.userId, 'transfer_in', 'Transferencia recibida', `Recibiste Q${amount.toFixed(2)} de la cuenta ${fromAccount}`, amount, toAccount, fromAccount, destination.balance);
 
         res.json({ message: 'Transferencia exitosa', source: { number: source.accountNumber, balance: source.balance }, destination: { number: destination.accountNumber, balance: destination.balance } });
     } catch (error) {
@@ -105,6 +144,8 @@ export async function cancel(req: AuthRequest, res: Response) {
         await reversal.save();
 
         await logAudit({ userId: account.userId.toString(), action: 'withdrawal', detail: `Reversion de ${transaction.type} por Q${transaction.amount}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { originalTransaction: transaction._id, reversalId: reversal._id } });
+
+        await notifyAndEmail(account.userId, 'system', 'Transaccion reversada', `Se reverso una transaccion de Q${transaction.amount.toFixed(2)}`, transaction.amount, account.accountNumber, undefined, account.balance);
 
         res.json({ message: 'Transaccion reversada exitosamente', reversal: { id: reversal._id, type: reversal.type, amount: reversal.amount, balanceBefore: reversal.balanceBefore, balanceAfter: reversal.balanceAfter } });
     } catch (error) {

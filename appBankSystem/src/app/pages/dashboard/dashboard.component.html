@@ -7,6 +7,7 @@
       <span class="brand-name">VectorBank</span>
     </div>
     <div class="user-area">
+      <app-notification-bell></app-notification-bell>
       <a routerLink="/profile" class="profile-link" title="Mi perfil">
         <div class="avatar-mini" *ngIf="user?.hasPhoto">
           <img [src]="'http://localhost:3000/api/users/' + user?.id + '/photo'" alt="" class="avatar-mini-img" />

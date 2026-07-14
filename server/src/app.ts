@@ -14,6 +14,7 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import fingerprintRoutes from './routes/fingerprint';
 import sensorRoutes from './routes/sensor';
+import notificationRoutes from './routes/notifications';
 import { env } from './config/env';
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/fingerprint', fingerprintRoutes);
 app.use('/api/sensor', sensorRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/', (_req, res) => {
     res.json({ message: 'VectorBank API running' });

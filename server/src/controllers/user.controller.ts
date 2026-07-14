@@ -11,7 +11,7 @@ export async function getMe(req: AuthRequest, res: Response) {
 
         const accounts = await Account.find({ userId: user._id });
         res.json({
-            user: { id: user._id, name: user.name, email: user.email, dni: user.dni, phone: user.phone, address: user.address, dateOfBirth: user.dateOfBirth, nationality: user.nationality, occupation: user.occupation, role: user.role, isVerified: user.isVerified, createdAt: user.createdAt, hasPhoto: !!user.photo },
+            user: { id: user._id, name: user.name, email: user.email, dni: user.dni, phone: user.phone, address: user.address, dateOfBirth: user.dateOfBirth, nationality: user.nationality, occupation: user.occupation, role: user.role, isVerified: user.isVerified, createdAt: user.createdAt, hasPhoto: !!user.photo, emailNotifications: user.emailNotifications },
             accounts: accounts.map(a => ({ number: a.accountNumber, type: a.type, balance: a.balance, currency: a.currency, isActive: a.isActive }))
         });
     } catch (error) {
@@ -78,5 +78,21 @@ export async function getPhoto(req: AuthRequest, res: Response) {
         res.send(user.photo);
     } catch (error) {
         res.status(500).json({ error: 'Error al obtener foto' });
+    }
+}
+
+export async function updateNotificationPreferences(req: AuthRequest, res: Response) {
+    try {
+        const { emailNotifications } = req.body;
+        const user = await User.findByIdAndUpdate(
+            req.user._id,
+            { emailNotifications },
+            { new: true }
+        ).select('-password');
+        if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+        res.json({ message: 'Preferencias actualizadas', emailNotifications: user.emailNotifications });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar preferencias' });
     }
 }

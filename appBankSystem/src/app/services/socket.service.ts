@@ -11,10 +11,21 @@ export interface TransferNotification {
   sourceBalance: number;
 }
 
+export interface NotificationEvent {
+  type: string;
+  title: string;
+  message: string;
+  amount?: number;
+  accountNumber?: string;
+  relatedAccount?: string;
+  createdAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SocketService {
   private socket: Socket | null = null;
   private transferSubject = new Subject<TransferNotification>();
+  private notificationSubject = new Subject<NotificationEvent>();
 
   transferReceived$: Observable<TransferNotification> = this.transferSubject.asObservable();
 
@@ -40,6 +51,14 @@ export class SocketService {
     this.socket.on('transfer_received', (data: TransferNotification) => {
       this.transferSubject.next(data);
     });
+
+    this.socket.on('notification', (data: NotificationEvent) => {
+      this.notificationSubject.next(data);
+    });
+  }
+
+  onNotification(): Observable<NotificationEvent> {
+    return this.notificationSubject.asObservable();
   }
 
   private disconnect() {

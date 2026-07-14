@@ -22,6 +22,7 @@ export interface IUser extends Document {
     resetPasswordToken: string | null;
     resetPasswordExpires: Date | null;
     refreshToken: string | null;
+    emailNotifications: boolean;
 }
 
 const userSchema = new Schema<IUser>({
@@ -68,6 +69,7 @@ const userSchema = new Schema<IUser>({
     resetPasswordToken: { type: String, default: null },
     resetPasswordExpires: { type: Date, default: null },
     refreshToken: { type: String, default: null },
+    emailNotifications: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     isActive: { type: Boolean, default: true },
