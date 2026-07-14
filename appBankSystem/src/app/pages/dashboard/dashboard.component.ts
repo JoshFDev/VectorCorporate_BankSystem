@@ -37,6 +37,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   withdrawAmount = 0;
   transferAmount = 0;
   transferTo = '';
+  confirmTransfer = false;
 
   notification: { message: string; amount: number } | null = null;
   private notifTimer: any = null;
@@ -134,6 +135,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.withdrawAmount = 0;
     this.transferAmount = 0;
     this.transferTo = '';
+    this.confirmTransfer = false;
     this.newAccountType = 'savings';
     if (type === 'deposit') this.showDeposit = true;
     if (type === 'withdraw') this.showWithdraw = true;
@@ -178,15 +180,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   doTransfer() {
     if (!this.selectedAccount || this.transferAmount <= 0 || !this.transferTo) return;
+
+    if (!this.confirmTransfer) {
+      this.confirmTransfer = true;
+      return;
+    }
+
     this.txnError = '';
     this.txnSuccess = '';
     this.txnSvc.transfer(this.selectedAccount.number, this.transferTo, this.transferAmount).subscribe({
       next: (res) => {
         this.txnSuccess = `Transferencia de ${this.formatCurrency(this.transferAmount)} exitosa`;
+        this.confirmTransfer = false;
         this.refreshAccount(res.source.number);
         setTimeout(() => this.closeModal('transfer'), 1200);
       },
-      error: (err) => (this.txnError = err.error?.error || 'Error al transferir'),
+      error: (err) => {
+        this.txnError = err.error?.error || 'Error al transferir';
+        this.confirmTransfer = false;
+      },
     });
   }
 

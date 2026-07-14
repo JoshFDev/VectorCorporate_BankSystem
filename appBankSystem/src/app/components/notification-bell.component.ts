@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
-import { NotificationService, Notification } from '../../services/notification.service';
-import { SocketService } from '../../services/socket.service';
+import { NotificationService, Notification } from '../services/notification.service';
+import { SocketService } from '../services/socket.service';
 
 @Component({
   selector: 'app-notification-bell',

@@ -136,19 +136,42 @@
 <!-- Transfer Modal -->
 <app-modal [open]="showTransfer" title="Transferir" (close)="closeModal('transfer')">
   <div class="modal-txn">
-    <p class="modal-account">Desde: {{ selectedAccount?.number }} · {{ accountTypeLabel(selectedAccount?.type || '') }}</p>
-    <p class="modal-balance">Saldo disponible: {{ formatCurrency(selectedAccount?.balance || 0) }}</p>
-    <div class="field">
-      <label>Cuenta destino</label>
-      <input type="text" [(ngModel)]="transferTo" placeholder="Número de cuenta" />
-    </div>
-    <div class="field">
-      <label>Monto</label>
-      <input type="number" [(ngModel)]="transferAmount" min="1" [max]="selectedAccount?.balance ?? null" placeholder="0.00" />
-    </div>
-    <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
-    <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
-    <button class="btn-submit" (click)="doTransfer()" [disabled]="transferAmount <= 0 || transferAmount > (selectedAccount?.balance || 0) || !transferTo">Transferir</button>
+    <!-- Step 1: Form -->
+    <ng-container *ngIf="!confirmTransfer">
+      <p class="modal-account">Desde: {{ selectedAccount?.number }} · {{ accountTypeLabel(selectedAccount?.type || '') }}</p>
+      <p class="modal-balance">Saldo disponible: {{ formatCurrency(selectedAccount?.balance || 0) }}</p>
+      <div class="field">
+        <label>Cuenta destino</label>
+        <input type="text" [(ngModel)]="transferTo" placeholder="Numero de cuenta" />
+      </div>
+      <div class="field">
+        <label>Monto</label>
+        <input type="number" [(ngModel)]="transferAmount" min="1" [max]="selectedAccount?.balance ?? null" placeholder="0.00" />
+      </div>
+      <button class="btn-submit" (click)="doTransfer()" [disabled]="transferAmount <= 0 || transferAmount > (selectedAccount?.balance || 0) || !transferTo">Continuar</button>
+    </ng-container>
+
+    <!-- Step 2: Confirmation -->
+    <ng-container *ngIf="confirmTransfer">
+      <div class="confirm-box">
+        <div class="confirm-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1e40af" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h4 class="confirm-title">Confirmar transferencia</h4>
+        <div class="confirm-detail">
+          <div class="confirm-row"><span>Origen:</span><strong>{{ selectedAccount?.number }}</strong></div>
+          <div class="confirm-row"><span>Destino:</span><strong>{{ transferTo }}</strong></div>
+          <div class="confirm-row"><span>Monto:</span><strong class="confirm-amount">{{ formatCurrency(transferAmount) }}</strong></div>
+        </div>
+        <p class="confirm-warning">Esta accion no se puede deshacer. Verifica que los datos sean correctos.</p>
+      </div>
+      <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
+      <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
+      <div class="confirm-actions">
+        <button class="btn-cancel" (click)="confirmTransfer = false">Volver</button>
+        <button class="btn-confirm" (click)="doTransfer()">Confirmar transferencia</button>
+      </div>
+    </ng-container>
   </div>
 </app-modal>
 
