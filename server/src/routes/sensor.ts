@@ -10,6 +10,18 @@ async function proxy(path: string, method: string): Promise<any> {
     return data;
 }
 
+/**
+ * @swagger
+ * /api/sensor/status:
+ *   get:
+ *     tags: [Sensor]
+ *     summary: Verificar conexion del sensor AS608
+ *     responses:
+ *       200:
+ *         description: Estado del sensor
+ *       503:
+ *         description: Sensor no disponible
+ */
 router.get('/status', async (_req: Request, res: Response) => {
     try {
         res.json(await proxy('/status', 'GET'));
@@ -18,6 +30,20 @@ router.get('/status', async (_req: Request, res: Response) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/sensor/identify:
+ *   post:
+ *     tags: [Sensor]
+ *     summary: Escanear huella y buscar coincidencia en la base
+ *     responses:
+ *       200:
+ *         description: Huella identificada (fingerprintId, userId, matchPercentage)
+ *       404:
+ *         description: Sin coincidencia
+ *       500:
+ *         description: Error al escanear
+ */
 router.post('/identify', async (_req: Request, res: Response) => {
     try {
         res.json(await proxy('/identify', 'POST'));
@@ -26,6 +52,18 @@ router.post('/identify', async (_req: Request, res: Response) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/sensor/register-scan:
+ *   post:
+ *     tags: [Sensor]
+ *     summary: Primer escaneo para registro de huella
+ *     responses:
+ *       200:
+ *         description: Hash SHA-256 de la huella escaneada
+ *       500:
+ *         description: Error al escanear
+ */
 router.post('/register-scan', async (_req: Request, res: Response) => {
     try {
         res.json(await proxy('/register-scan', 'POST'));
@@ -34,6 +72,18 @@ router.post('/register-scan', async (_req: Request, res: Response) => {
     }
 });
 
+/**
+ * @swagger
+ * /api/sensor/register-confirm:
+ *   post:
+ *     tags: [Sensor]
+ *     summary: Segundo escaneo para confirmar huella
+ *     responses:
+ *       200:
+ *         description: Hash SHA-256 confirmado
+ *       500:
+ *         description: Error al escanear
+ */
 router.post('/register-confirm', async (_req: Request, res: Response) => {
     try {
         res.json(await proxy('/register-confirm', 'POST'));
