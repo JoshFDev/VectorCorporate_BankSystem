@@ -44,7 +44,6 @@ const accountSchema = new Schema<IAccount>({
 });
 
 accountSchema.index({ userId: 1 });
-accountSchema.index({ accountNumber: 1 }, { unique: true });
 accountSchema.index({ userId: 1, type: 1 });
 accountSchema.index({ createdAt: -1 });
 
