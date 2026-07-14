@@ -3,16 +3,18 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { AccountService, AccountData } from '../../services/account.service';
+import { AccountService, AccountData, MonthlySummary } from '../../services/account.service';
 import { TransactionService } from '../../services/transaction.service';
 import { ModalComponent } from '../../components/modal/modal.component';
 import { NotificationBellComponent } from '../../components/notification-bell.component';
 import { SocketService } from '../../services/socket.service';
+import { NgChartsModule } from 'ng2-charts';
+import { ChartConfiguration, ChartData } from 'chart.js';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, ModalComponent, NotificationBellComponent, RouterLink],
+  imports: [CommonModule, FormsModule, ModalComponent, NotificationBellComponent, RouterLink, NgChartsModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -41,6 +43,55 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   notification: { message: string; amount: number } | null = null;
   private notifTimer: any = null;
+
+  monthlyData: MonthlySummary[] = [];
+
+  barChartData: ChartData<'bar'> = { labels: [], datasets: [] };
+  barChartOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16, font: { size: 12 } } },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const val = ctx.parsed.y;
+            return `${ctx.dataset.label}: Q${val.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+      y: {
+        beginAtZero: true,
+        grid: { color: '#e2e8f0' },
+        ticks: {
+          font: { size: 11 },
+          callback: (val) => `Q${Number(val).toLocaleString('es-GT')}`
+        }
+      }
+    }
+  };
+
+  doughnutChartData: ChartData<'doughnut'> = { labels: [], datasets: [] };
+  doughnutChartOptions: ChartConfiguration<'doughnut'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 12 } } },
+      tooltip: {
+        callbacks: {
+          label: (ctx) => {
+            const val = ctx.parsed;
+            const total = ctx.dataset.data.reduce((a: number, b: number) => a + b, 0);
+            const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0';
+            return `${ctx.label}: Q${val.toLocaleString('es-GT', { minimumFractionDigits: 2 })} (${pct}%)`;
+          }
+        }
+      }
+    }
+  };
 
   constructor(
     private auth: AuthService,
@@ -95,6 +146,78 @@ export class DashboardComponent implements OnInit, OnDestroy {
       next: (res) => (this.transactions = res.transactions || []),
       error: () => (this.transactions = []),
     });
+    this.loadMonthlySummary(acc.number);
+  }
+
+  private loadMonthlySummary(accountNumber: string) {
+    this.accountSvc.getMonthlySummary(accountNumber, 6).subscribe({
+      next: (res) => {
+        this.monthlyData = res.summary;
+        this.buildCharts(res.summary);
+      },
+      error: () => {
+        this.monthlyData = [];
+      },
+    });
+  }
+
+  private buildCharts(data: MonthlySummary[]) {
+    const labels = data.map(d => {
+      const [y, m] = d.month.split('-');
+      const date = new Date(parseInt(y), parseInt(m) - 1);
+      return date.toLocaleDateString('es-GT', { month: 'short', year: '2-digit' });
+    });
+
+    this.barChartData = {
+      labels,
+      datasets: [
+        {
+          label: 'Depósitos',
+          data: data.map(d => d.deposits),
+          backgroundColor: '#22c55e',
+          borderRadius: 4,
+        },
+        {
+          label: 'Retiros',
+          data: data.map(d => d.withdrawals),
+          backgroundColor: '#ef4444',
+          borderRadius: 4,
+        },
+        {
+          label: 'Transferencias recibidas',
+          data: data.map(d => d.transferIn),
+          backgroundColor: '#3b82f6',
+          borderRadius: 4,
+        },
+        {
+          label: 'Transferencias enviadas',
+          data: data.map(d => d.transferOut),
+          backgroundColor: '#f59e0b',
+          borderRadius: 4,
+        }
+      ]
+    };
+
+    const totals = data.reduce(
+      (acc, d) => ({
+        deposits: acc.deposits + d.deposits,
+        withdrawals: acc.withdrawals + d.withdrawals,
+        transferIn: acc.transferIn + d.transferIn,
+        transferOut: acc.transferOut + d.transferOut,
+      }),
+      { deposits: 0, withdrawals: 0, transferIn: 0, transferOut: 0 }
+    );
+
+    const hasData = totals.deposits + totals.withdrawals + totals.transferIn + totals.transferOut > 0;
+
+    this.doughnutChartData = {
+      labels: ['Depósitos', 'Retiros', 'Transferencias recibidas', 'Transferencias enviadas'],
+      datasets: [{
+        data: hasData ? [totals.deposits, totals.withdrawals, totals.transferIn, totals.transferOut] : [1, 1, 1, 1],
+        backgroundColor: hasData ? ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b'] : ['#e2e8f0', '#cbd5e1', '#94a3b8', '#64748b'],
+        borderWidth: 0,
+      }]
+    };
   }
 
   get totalBalance(): number {

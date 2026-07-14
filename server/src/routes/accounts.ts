@@ -90,6 +90,120 @@ router.get('/:accountNumber/transactions', accountController.getTransactions);
 
 /**
  * @swagger
+ * /api/accounts/{accountNumber}/transactions/search:
+ *   get:
+ *     tags: [Accounts]
+ *     summary: Buscar transacciones con filtros avanzados
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: accountNumber
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [deposit, withdrawal, transfer_in, transfer_out]
+ *       - in: query
+ *         name: from
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: to
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: minAmount
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: maxAmount
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: description
+ *         schema:
+ *           type: string
+ *         description: Busqueda por descripcion (case-insensitive)
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [createdAt, amount]
+ *           default: createdAt
+ *       - in: query
+ *         name: order
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
+ *           default: desc
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *     responses:
+ *       200:
+ *         description: Transacciones filtradas con paginacion
+ */
+router.get('/:accountNumber/transactions/search', accountController.searchTransactions);
+
+/**
+ * @swagger
+ * /api/accounts/transaction/{id}:
+ *   get:
+ *     tags: [Accounts]
+ *     summary: Obtener una transaccion por ID
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Transaccion encontrada
+ *       404:
+ *         description: Transaccion no encontrada
+ */
+router.get('/transaction/:id', accountController.getTransactionById);
+
+/**
+ * @swagger
+ * /api/accounts/transaction/{id}/receipt:
+ *   get:
+ *     tags: [Accounts]
+ *     summary: Descargar recibo PDF de una transaccion
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Archivo PDF del recibo
+ *       404:
+ *         description: Transaccion no encontrada
+ */
+router.get('/transaction/:id/receipt', accountController.downloadReceipt);
+
+/**
+ * @swagger
  * /api/accounts/{accountNumber}/export:
  *   get:
  *     tags: [Accounts]
@@ -123,6 +237,31 @@ router.get('/:accountNumber/transactions', accountController.getTransactions);
  *         description: Archivo descargable
  */
 router.get('/:accountNumber/export', accountController.exportStatement);
+
+/**
+ * @swagger
+ * /api/accounts/{accountNumber}/monthly-summary:
+ *   get:
+ *     tags: [Accounts]
+ *     summary: Resumen mensual de transacciones (para graficos)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: accountNumber
+ *         required: true
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: months
+ *         schema:
+ *           type: integer
+ *           default: 6
+ *     responses:
+ *       200:
+ *         description: Resumen mensual con totales por tipo
+ */
+router.get('/:accountNumber/monthly-summary', accountController.getMonthlySummary);
 
 /**
  * @swagger

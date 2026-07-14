@@ -17,10 +17,10 @@
     align-items: center;
     gap: 10px;
 
-    .brand-icon {
-      width: 34px; height: 34px; border-radius: 8px;
-      background: #1e40af; color: #fff;
-      display: flex; align-items: center; justify-content: center;
+    .brand-logo {
+      height: 34px;
+      width: auto;
+      object-fit: contain;
     }
 
     .brand-name {

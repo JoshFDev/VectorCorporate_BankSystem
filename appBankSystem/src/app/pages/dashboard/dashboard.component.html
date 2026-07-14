@@ -1,9 +1,7 @@
 <div class="dashboard" *ngIf="!loading">
   <header class="topbar">
     <div class="brand">
-      <div class="brand-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
-      </div>
+      <img src="assets/images/VectorBankSystem.png" alt="VectorBank" class="brand-logo" />
       <span class="brand-name">VectorBank</span>
     </div>
     <div class="user-area">
@@ -43,6 +41,30 @@
       <div class="balance-label">Saldo total disponible</div>
       <div class="balance-amount">{{ formatCurrency(totalBalance) }}</div>
       <div class="balance-note">{{ accounts.length }} cuenta{{ accounts.length !== 1 ? 's' : '' }}</div>
+    </section>
+
+    <!-- Charts Section -->
+    <section class="charts-section" *ngIf="monthlyData.length > 0">
+      <div class="chart-card">
+        <h3 class="chart-title">Movimientos por mes (6 meses)</h3>
+        <div class="chart-container">
+          <canvas baseChart
+            [data]="barChartData"
+            [options]="barChartOptions"
+            type="bar">
+          </canvas>
+        </div>
+      </div>
+      <div class="chart-card chart-card-small">
+        <h3 class="chart-title">Distribución total</h3>
+        <div class="chart-container chart-container-doughnut">
+          <canvas baseChart
+            [data]="doughnutChartData"
+            [options]="doughnutChartOptions"
+            type="doughnut">
+          </canvas>
+        </div>
+      </div>
     </section>
 
     <section class="actions">

@@ -27,8 +27,15 @@ export class TransactionsComponent implements OnInit {
   filterType = '';
   filterDateFrom = '';
   filterDateTo = '';
+  filterMinAmount: number | null = null;
+  filterMaxAmount: number | null = null;
+  filterDescription = '';
+  filterSort = 'createdAt';
+  filterOrder = 'desc';
 
   availableLimits = [5, 10, 20, 50];
+  searchTimeout: any = null;
+  showAdvanced = false;
 
   constructor(
     private auth: AuthService,
@@ -59,15 +66,32 @@ export class TransactionsComponent implements OnInit {
   selectAccount(acc: AccountData) {
     this.selectedAccount = acc;
     this.page = 1;
+    this.clearFilters();
+    this.loadTransactions();
+  }
+
+  clearFilters() {
     this.filterType = '';
     this.filterDateFrom = '';
     this.filterDateTo = '';
-    this.loadTransactions();
+    this.filterMinAmount = null;
+    this.filterMaxAmount = null;
+    this.filterDescription = '';
+    this.filterSort = 'createdAt';
+    this.filterOrder = 'desc';
   }
 
   applyFilters() {
     this.page = 1;
     this.loadTransactions();
+  }
+
+  onDescriptionSearch() {
+    if (this.searchTimeout) clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.page = 1;
+      this.loadTransactions();
+    }, 400);
   }
 
   changeLimit(limit: number) {
@@ -79,22 +103,21 @@ export class TransactionsComponent implements OnInit {
   loadTransactions() {
     if (!this.selectedAccount) return;
     this.loading = true;
-    this.accountSvc.getTransactions(this.selectedAccount.number, this.page, this.limit).subscribe({
+
+    this.accountSvc.searchTransactions(this.selectedAccount.number, {
+      type: this.filterType || undefined,
+      from: this.filterDateFrom || undefined,
+      to: this.filterDateTo || undefined,
+      minAmount: this.filterMinAmount ?? undefined,
+      maxAmount: this.filterMaxAmount ?? undefined,
+      description: this.filterDescription || undefined,
+      sort: this.filterSort,
+      order: this.filterOrder,
+      page: this.page,
+      limit: this.limit,
+    }).subscribe({
       next: (res) => {
-        let txns = res.transactions || [];
-        if (this.filterType) {
-          txns = txns.filter((t: any) => t.type === this.filterType);
-        }
-        // Date filtering is done on client side from loaded page for simplicity
-        if (this.filterDateFrom) {
-          const from = new Date(this.filterDateFrom).getTime();
-          txns = txns.filter((t: any) => new Date(t.createdAt).getTime() >= from);
-        }
-        if (this.filterDateTo) {
-          const to = new Date(this.filterDateTo).getTime() + 86400000;
-          txns = txns.filter((t: any) => new Date(t.createdAt).getTime() <= to);
-        }
-        this.transactions = txns;
+        this.transactions = res.transactions || [];
         this.total = res.pagination?.total || 0;
         this.loading = false;
       },
@@ -108,7 +131,6 @@ export class TransactionsComponent implements OnInit {
 
   get pages(): number[] {
     const p = this.totalPages;
-    // Show max 10 page numbers centered around current
     const start = Math.max(1, this.page - 5);
     const end = Math.min(p, start + 9);
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
@@ -118,6 +140,11 @@ export class TransactionsComponent implements OnInit {
     if (p < 1 || p > this.totalPages) return;
     this.page = p;
     this.loadTransactions();
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!(this.filterType || this.filterDateFrom || this.filterDateTo ||
+      this.filterMinAmount || this.filterMaxAmount || this.filterDescription);
   }
 
   formatCurrency(amount: number): string {
@@ -147,6 +174,11 @@ export class TransactionsComponent implements OnInit {
     let url = `${environment.apiUrl}/accounts/${this.selectedAccount.number}/export?format=${format}`;
     if (this.filterDateFrom) url += `&from=${this.filterDateFrom}`;
     if (this.filterDateTo) url += `&to=${this.filterDateTo}`;
+    window.open(url, '_blank');
+  }
+
+  downloadReceipt(txId: string) {
+    const url = `${environment.apiUrl}/accounts/transaction/${txId}/receipt`;
     window.open(url, '_blank');
   }
 }

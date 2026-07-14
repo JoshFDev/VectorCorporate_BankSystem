@@ -14,11 +14,7 @@ import { CommonModule } from '@angular/common';
       <div class="login-card">
         <div class="card-header">
           <div class="brand">
-            <div class="brand-icon">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M12 9v4"/><path d="M12 17h.01"/>
-              </svg>
-            </div>
+            <img src="assets/images/VectorBankSystem.png" alt="VectorBank" class="brand-logo" />
             <h1>VectorBank</h1>
           </div>
           <p class="subtitle">Sistema Bancario</p>
@@ -105,10 +101,8 @@ import { CommonModule } from '@angular/common';
     }
     .card-header { text-align: center; margin-bottom: 1.5rem; }
     .brand { display: flex; align-items: center; justify-content: center; gap: 10px; }
-    .brand-icon {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: #1e40af; color: #fff;
-      display: flex; align-items: center; justify-content: center;
+    .brand-logo {
+      height: 38px; width: auto; object-fit: contain;
     }
     .brand h1 { font-size: 24px; font-weight: 600; color: #1e293b; margin: 0; }
     .subtitle { color: #64748b; font-size: 14px; margin: 4px 0 0; }

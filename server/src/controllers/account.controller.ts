@@ -37,6 +37,159 @@ export async function getAccount(req: AuthRequest, res: Response) {
     }
 }
 
+export async function searchTransactions(req: AuthRequest, res: Response) {
+    try {
+        const account = await Account.findOne({ accountNumber: req.params.accountNumber });
+        if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
+        if (account.userId.toString() !== req.user._id.toString()) return res.status(403).json({ error: 'No tienes acceso a esta cuenta' });
+
+        const { type, from, to, minAmount, maxAmount, description, sort = 'createdAt', order = 'desc', page = '1', limit = '20' } = req.query as Record<string, string>;
+
+        const filter: any = { accountId: account._id };
+
+        if (type) filter.type = type;
+        if (description) filter.description = { $regex: description, $options: 'i' };
+        if (from || to) {
+            filter.createdAt = {};
+            if (from) filter.createdAt.$gte = new Date(from);
+            if (to) filter.createdAt.$lte = new Date(to + 'T23:59:59.999Z');
+        }
+        if (minAmount || maxAmount) {
+            filter.amount = {};
+            if (minAmount) filter.amount.$gte = parseFloat(minAmount);
+            if (maxAmount) filter.amount.$lte = parseFloat(maxAmount);
+        }
+
+        const pageNum = parseInt(page) || 1;
+        const limitNum = parseInt(limit) || 20;
+        const skip = (pageNum - 1) * limitNum;
+        const sortDir = order === 'asc' ? 1 : -1;
+
+        const [transactions, total] = await Promise.all([
+            Transaction.find(filter).sort({ [sort]: sortDir }).skip(skip).limit(limitNum).populate('relatedAccount', 'accountNumber'),
+            Transaction.countDocuments(filter)
+        ]);
+
+        res.json({
+            transactions,
+            pagination: { page: pageNum, limit: limitNum, total, pages: Math.ceil(total / limitNum) }
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al buscar transacciones' });
+    }
+}
+
+export async function getTransactionById(req: AuthRequest, res: Response) {
+    try {
+        const tx = await Transaction.findById(req.params.id).populate('relatedAccount', 'accountNumber');
+        if (!tx) return res.status(404).json({ error: 'Transaccion no encontrada' });
+
+        const account = await Account.findById(tx.accountId);
+        if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
+        if (account.userId.toString() !== req.user._id.toString()) return res.status(403).json({ error: 'No tienes acceso' });
+
+        res.json({ transaction: tx });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener transaccion' });
+    }
+}
+
+export async function downloadReceipt(req: AuthRequest, res: Response) {
+    try {
+        const tx = await Transaction.findById(req.params.id).populate('relatedAccount', 'accountNumber');
+        if (!tx) return res.status(404).json({ error: 'Transaccion no encontrada' });
+
+        const account = await Account.findById(tx.accountId);
+        if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
+        if (account.userId.toString() !== req.user._id.toString()) return res.status(403).json({ error: 'No tienes acceso' });
+
+        const user = await User.findById(req.user._id);
+        const isPositive = tx.type === 'deposit' || tx.type === 'transfer_in';
+        const sign = isPositive ? '+' : '-';
+        const color = isPositive ? '#16a34a' : '#dc2626';
+
+        const doc = new PDFDocument({ margin: 50, size: 'A4' });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="recibo_${tx._id}.pdf"`);
+        doc.pipe(res);
+
+        doc.rect(0, 0, 595.28, 120).fill('#1e40af');
+        doc.fontSize(22).font('Helvetica-Bold').fillColor('#ffffff').text('VectorBank', 50, 30, { align: 'left' });
+        doc.fontSize(11).font('Helvetica').fillColor('#bfdbfe').text('Recibo de Transaccion', 50, 58);
+        doc.fontSize(9).fillColor('#93c5fd').text(`Comprobante No. ${String(tx._id).slice(-8).toUpperCase()}`, 50, 76);
+
+        doc.fillColor('#1e293b');
+
+        doc.y = 145;
+        doc.fontSize(16).font('Helvetica-Bold').text('Detalle de Transaccion', 50);
+        doc.moveDown(0.3);
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke('#e2e8f0');
+        doc.moveDown(0.8);
+
+        const leftX = 50;
+        const rightX = 300;
+        let y = doc.y;
+
+        const drawField = (label: string, value: string, x: number, yPos: number, options?: { bold?: boolean; color?: string; size?: number }) => {
+            doc.fontSize(9).font('Helvetica').fillColor('#94a3b8').text(label, x, yPos, { width: 230 });
+            doc.fontSize(12).font(options?.bold ? 'Helvetica-Bold' : 'Helvetica').fillColor(options?.color || '#1e293b').text(value, x, yPos + 14, { width: 230 });
+            return yPos + 36;
+        };
+
+        const typeLabel = TYPE_LABELS[tx.type] || tx.type;
+        const dateStr = new Date(tx.createdAt).toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric' });
+        const timeStr = new Date(tx.createdAt).toLocaleTimeString('es-GT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        y = drawField('TIPO DE TRANSACCION', typeLabel, leftX, y, { bold: true });
+        y = drawField('FECHA', dateStr, leftX, y);
+        y = drawField('HORA', timeStr, leftX, y);
+
+        y = doc.y;
+        y = drawField('CUENTA ORIGEN', account.accountNumber, leftX, y);
+
+        const relatedAcc = (tx.relatedAccount as any)?.accountNumber;
+        if (relatedAcc) {
+            y = drawField('CUENTA DESTINO', relatedAcc, leftX, y);
+        }
+
+        y = doc.y;
+        y = drawField('DESCRIPCION', tx.description || 'Sin descripcion', leftX, y);
+
+        doc.y = y + 10;
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke('#e2e8f0');
+        doc.moveDown(1);
+
+        doc.y += 5;
+        const amountY = doc.y;
+
+        doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('MONTO', 50, amountY, { width: 250 });
+        doc.fontSize(28).font('Helvetica-Bold').fillColor(color).text(`${sign}Q${tx.amount.toFixed(2)}`, 50, amountY + 16, { width: 250 });
+
+        doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('SALDO ANTES', 300, amountY, { width: 200 });
+        doc.fontSize(14).font('Helvetica-Bold').fillColor('#1e293b').text(`Q${tx.balanceBefore.toFixed(2)}`, 300, amountY + 14, { width: 200 });
+
+        doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('SALDO DESPUES', 300, amountY + 40, { width: 200 });
+        doc.fontSize(14).font('Helvetica-Bold').fillColor(color).text(`Q${tx.balanceAfter.toFixed(2)}`, 300, amountY + 54, { width: 200 });
+
+        doc.y = amountY + 90;
+        doc.moveTo(50, doc.y).lineTo(545, doc.y).stroke('#e2e8f0');
+        doc.moveDown(1.5);
+
+        doc.fontSize(9).font('Helvetica').fillColor('#94a3b8');
+        doc.text(`Cliente: ${user?.name || 'N/A'}`, 50);
+        doc.text(`Documento generado el ${new Date().toLocaleDateString('es-GT')} a las ${new Date().toLocaleTimeString('es-GT')}`, 50);
+
+        doc.moveDown(2);
+        const footerY = doc.y + 10;
+        doc.rect(0, footerY, 595.28, 40).fill('#f8fafc');
+        doc.fontSize(8).font('Helvetica').fillColor('#94a3b8').text('Este documento es un comprobante oficial de VectorBank. Para consultas contactar soporte@vectorbank.com', 50, footerY + 14, { align: 'center', width: 495 });
+
+        doc.end();
+    } catch (error) {
+        res.status(500).json({ error: 'Error al generar recibo' });
+    }
+}
+
 export async function getTransactions(req: AuthRequest, res: Response) {
     try {
         const account = await Account.findOne({ accountNumber: req.params.accountNumber });
@@ -72,6 +225,66 @@ export async function deactivateAccount(req: AuthRequest, res: Response) {
         res.json({ message: 'Cuenta desactivada exitosamente' });
     } catch (error) {
         res.status(500).json({ error: 'Error al desactivar cuenta' });
+    }
+}
+
+export async function getMonthlySummary(req: AuthRequest, res: Response) {
+    try {
+        const account = await Account.findOne({ accountNumber: req.params.accountNumber });
+        if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
+        if (account.userId.toString() !== req.user._id.toString()) return res.status(403).json({ error: 'No tienes acceso a esta cuenta' });
+
+        const months = parseInt(req.query.months as string) || 6;
+        const fromDate = new Date();
+        fromDate.setMonth(fromDate.getMonth() - months);
+        fromDate.setHours(0, 0, 0, 0);
+
+        const transactions = await Transaction.find({
+            accountId: account._id,
+            createdAt: { $gte: fromDate }
+        }).sort({ createdAt: 1 });
+
+        const monthlyData: Record<string, { deposits: number; withdrawals: number; transferIn: number; transferOut: number }> = {};
+
+        const now = new Date();
+        for (let i = months - 1; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            monthlyData[key] = { deposits: 0, withdrawals: 0, transferIn: 0, transferOut: 0 };
+        }
+
+        for (const tx of transactions) {
+            const d = new Date(tx.createdAt);
+            const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+            if (!monthlyData[key]) continue;
+
+            switch (tx.type) {
+                case 'deposit': monthlyData[key].deposits += tx.amount; break;
+                case 'withdrawal': monthlyData[key].withdrawals += tx.amount; break;
+                case 'transfer_in': monthlyData[key].transferIn += tx.amount; break;
+                case 'transfer_out': monthlyData[key].transferOut += tx.amount; break;
+            }
+        }
+
+        const summary = Object.entries(monthlyData).map(([month, data]) => ({
+            month,
+            ...data,
+            net: (data.deposits + data.transferIn) - (data.withdrawals + data.transferOut)
+        }));
+
+        const totalByType = transactions.reduce((acc, tx) => {
+            switch (tx.type) {
+                case 'deposit': acc.deposits += tx.amount; break;
+                case 'withdrawal': acc.withdrawals += tx.amount; break;
+                case 'transfer_in': acc.transferIn += tx.amount; break;
+                case 'transfer_out': acc.transferOut += tx.amount; break;
+            }
+            return acc;
+        }, { deposits: 0, withdrawals: 0, transferIn: 0, transferOut: 0 });
+
+        res.json({ summary, totals: totalByType });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener resumen mensual' });
     }
 }
 

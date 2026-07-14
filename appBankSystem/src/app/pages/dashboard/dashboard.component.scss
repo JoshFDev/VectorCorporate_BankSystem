@@ -18,15 +18,10 @@
     align-items: center;
     gap: 10px;
 
-    .brand-icon {
-      width: 34px;
+    .brand-logo {
       height: 34px;
-      border-radius: 8px;
-      background: #1e40af;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: auto;
+      object-fit: contain;
     }
 
     .brand-name {
@@ -453,6 +448,43 @@
   &:hover { background: #1e3a8a; }
 }
 
+// Charts
+.charts-section {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 20px;
+  flex: 2;
+
+  .chart-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin: 0 0 16px;
+  }
+
+  .chart-container {
+    height: 240px;
+    position: relative;
+  }
+}
+
+.chart-card-small {
+  flex: 1;
+
+  .chart-container-doughnut {
+    height: 240px;
+  }
+}
+
 // Responsive
 @media (max-width: 768px) {
   .topbar { padding: 0 16px;
@@ -464,6 +496,8 @@
   .balance-card { padding: 20px;
     .balance-amount { font-size: 28px; }
   }
+
+  .charts-section { flex-direction: column; gap: 16px; }
 
   .actions { gap: 8px;
     .action-btn { font-size: 13px; padding: 10px 8px;
