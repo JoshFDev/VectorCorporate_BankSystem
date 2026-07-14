@@ -55,6 +55,31 @@ export async function login(req: AuthRequest, res: Response) {
     }
 }
 
+export async function loginFingerprint(req: AuthRequest, res: Response) {
+    try {
+        const { email, sensorPosition } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) return res.status(401).json({ error: 'Credenciales invalidas' });
+        if (!user.fingerprint) return res.status(400).json({ error: 'Usuario no tiene huella registrada' });
+
+        const storedPosition = user.fingerprint.toString('utf-8');
+
+        if (storedPosition !== String(sensorPosition)) {
+            return res.status(401).json({ error: 'Huella no coincide' });
+        }
+
+        user.lastLogin = new Date();
+        await user.save();
+
+        await logAudit({ userId: user._id.toString(), action: 'login', detail: `Inicio de sesion por huella: ${email}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { email, method: 'fingerprint' } });
+
+        const token = generateToken(user._id.toString());
+        res.json({ message: 'Inicio de sesion exitoso', token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al iniciar sesion con huella' });
+    }
+}
+
 export async function changePassword(req: AuthRequest, res: Response) {
     try {
         const { currentPassword, newPassword } = req.body;

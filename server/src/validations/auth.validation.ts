@@ -17,6 +17,11 @@ export const loginSchema = z.object({
     password: z.string().min(1, 'Password requerido'),
 });
 
+export const loginFingerprintSchema = z.object({
+    email: z.string().email('Email invalido'),
+    sensorPosition: z.coerce.number().int().min(0, 'Posicion del sensor requerida'),
+});
+
 export const changePasswordSchema = z.object({
     currentPassword: z.string().min(1, 'Contraseña actual requerida'),
     newPassword: z.string().min(6, 'Nueva contraseña debe tener al menos 6 caracteres'),

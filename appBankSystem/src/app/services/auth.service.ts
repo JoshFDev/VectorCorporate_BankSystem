@@ -41,6 +41,12 @@ export class AuthService {
     );
   }
 
+  loginWithFingerprint(email: string, sensorPosition: number): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login-fingerprint`, { email, sensorPosition }).pipe(
+      tap(res => this.setSession(res))
+    );
+  }
+
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     this.userSubject.next(null);

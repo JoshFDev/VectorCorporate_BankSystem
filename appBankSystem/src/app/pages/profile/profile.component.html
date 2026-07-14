@@ -84,6 +84,138 @@
           <div class="field-value">{{ formatDate(user.createdAt) }}</div>
         </div>
       </div>
+
+      <!-- Fingerprint -->
+      <div class="section">
+        <h3>Huella digital</h3>
+
+        <div class="sensor-status" [class.connected]="sensorConnected">
+          <span class="sensor-dot"></span>
+          Sensor: {{ sensorConnected ? 'Conectado' : 'Desconectado' }}
+        </div>
+
+        <!-- Estado: sin huella, sin proceso activo -->
+        <div class="fingerprint-status" *ngIf="fingerprintRegistered && fpStep === 'idle'">
+          <div class="fingerprint-info">
+            <div class="fingerprint-icon registered">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+                <path d="M2 12a10 10 0 0 1 18-6"/>
+                <path d="M2 16h.01"/>
+                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+              </svg>
+            </div>
+            <div class="fingerprint-text">
+              <span class="fingerprint-label">Huella registrada</span>
+              <span class="fingerprint-desc">Puedes iniciar sesion con tu huella</span>
+            </div>
+          </div>
+          <div class="fingerprint-actions">
+            <button class="btn-fingerprint btn-update" (click)="registerFingerprint()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+              Actualizar
+            </button>
+            <button class="btn-fingerprint btn-remove" (click)="removeFingerprint()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+              Eliminar
+            </button>
+          </div>
+        </div>
+
+        <!-- Estado: sin huella, sin proceso -->
+        <div class="fingerprint-status" *ngIf="!fingerprintRegistered && fpStep === 'idle'">
+          <div class="fingerprint-info">
+            <div class="fingerprint-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+                <path d="M2 12a10 10 0 0 1 18-6"/>
+                <path d="M2 16h.01"/>
+                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+              </svg>
+            </div>
+            <div class="fingerprint-text">
+              <span class="fingerprint-label">Sin huella registrada</span>
+              <span class="fingerprint-desc">Registra tu huella para iniciar sesion rapido</span>
+            </div>
+          </div>
+          <div class="fingerprint-actions">
+            <button class="btn-fingerprint btn-register" (click)="registerFingerprint()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              Registrar
+            </button>
+          </div>
+        </div>
+
+        <!-- Proceso activo: paso 1, 2, comparando, registrando -->
+        <div class="fp-wizard" *ngIf="fpStep !== 'idle' && fpStep !== 'done'">
+          <div class="fp-steps">
+            <div class="fp-step" [class.active]="fpStep === 'scanning1' || fpStep === 'scanned1'" [class.done]="fpStep !== 'scanning1' && fpStep !== 'scanned1'">
+              <div class="fp-step-num">1</div>
+              <span>Primer escaneo</span>
+            </div>
+            <div class="fp-step-line" [class.done]="fpStep === 'scanning2' || fpStep === 'comparing' || fpStep === 'registering'"></div>
+            <div class="fp-step" [class.active]="fpStep === 'scanning2'" [class.done]="fpStep === 'comparing' || fpStep === 'registering'">
+              <div class="fp-step-num">2</div>
+              <span>Segundo escaneo</span>
+            </div>
+          </div>
+
+          <div class="fp-scan-area" [class.scanning]="fpStep === 'scanning1' || fpStep === 'scanning2'" >
+            <div class="fp-scan-icon">
+              <svg *ngIf="fpStep === 'scanning1' || fpStep === 'scanning2'" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#1e40af" stroke-width="1.5">
+                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
+                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
+                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
+                <path d="M2 12a10 10 0 0 1 18-6"/>
+                <path d="M2 16h.01"/>
+                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
+                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
+                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
+                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
+              </svg>
+              <div class="spinner-ring" *ngIf="fpStep === 'comparing' || fpStep === 'registering'"></div>
+              <svg *ngIf="fpStep === 'scanned1'" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="1.5">
+                <path d="M20 6 9 17l-5-5"/>
+              </svg>
+            </div>
+            <p class="fp-scan-label">
+              <ng-container [ngSwitch]="fpStep">
+                <span *ngSwitchCase="'scanning1'">Coloca tu dedo en el sensor...</span>
+                <span *ngSwitchCase="'scanned1'">{{ fpMessage || 'Primer escaneo capturado' }}</span>
+                <span *ngSwitchCase="'scanning2'">Coloca tu dedo de nuevo en el sensor...</span>
+                <span *ngSwitchCase="'comparing'">{{ fpMessage || 'Comparando...' }}</span>
+                <span *ngSwitchCase="'registering'">{{ fpMessage || 'Registrando...' }}</span>
+                <span *ngSwitchCase="'registering'">Registrando huella...</span>
+              </ng-container>
+            </p>
+          </div>
+
+          <div class="fp-scan-actions">
+            <button *ngIf="fpStep === 'scanned1'" class="btn-fingerprint btn-register" (click)="scanSecond()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+              Segundo escaneo
+            </button>
+            <button *ngIf="fpStep === 'scanning1' || fpStep === 'scanned1'" class="btn-fingerprint btn-cancel-fp" (click)="cancelFingerprint()">Cancelar</button>
+          </div>
+        </div>
+
+        <!-- Registro completado -->
+        <div class="fp-success" *ngIf="fpStep === 'done'">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+          <p>Huella registrada exitosamente</p>
+          <button class="btn-fingerprint btn-register" (click)="fpStep = 'idle'">Continuar</button>
+        </div>
+      </div>
     </div>
   </main>
 </div>

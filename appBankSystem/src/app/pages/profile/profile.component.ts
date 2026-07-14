@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { FingerprintService } from '../../services/fingerprint.service';
 import { environment } from '../../environments/environment';
 
 @Component({
@@ -23,10 +24,16 @@ export class ProfileComponent implements OnInit {
   editMode: Record<string, boolean> = {};
   uploadingPhoto = false;
 
+  fingerprintRegistered = false;
+  fpStep: 'idle' | 'scanning1' | 'scanned1' | 'scanning2' | 'comparing' | 'registering' | 'done' | 'error' = 'idle';
+  sensorConnected = false;
+  fpMessage = '';
+
   constructor(
     private auth: AuthService,
     private http: HttpClient,
     private router: Router,
+    private fingerprintService: FingerprintService,
   ) {}
 
   ngOnInit() {
@@ -34,7 +41,10 @@ export class ProfileComponent implements OnInit {
       if (!ready) return;
       const u = (this.auth as any).userSubject.value;
       if (!u) this.router.navigate(['/login']);
-      else this.loadProfile();
+      else {
+        this.loadProfile();
+        this.loadFingerprintStatus();
+      }
     });
   }
 
@@ -49,6 +59,17 @@ export class ProfileComponent implements OnInit {
         this.error = 'Error al cargar perfil';
         this.loading = false;
       },
+    });
+  }
+
+  private loadFingerprintStatus() {
+    this.fingerprintService.getStatus().subscribe({
+      next: (res) => this.fingerprintRegistered = res.registered,
+      error: () => {},
+    });
+    this.fingerprintService.getSensorStatus().subscribe({
+      next: (res) => this.sensorConnected = res.connected,
+      error: () => this.sensorConnected = false,
     });
   }
 
@@ -115,6 +136,84 @@ export class ProfileComponent implements OnInit {
         this.success = 'Foto eliminada';
       },
       error: () => { this.error = 'Error al eliminar foto'; },
+    });
+  }
+
+  registerFingerprint() {
+    this.fpStep = 'scanning1';
+    this.fpMessage = '';
+    this.error = '';
+    this.success = '';
+
+    this.fingerprintService.registerScan().subscribe({
+      next: () => {
+        this.fpStep = 'scanned1';
+        this.fpMessage = 'Primer escaneo listo. Coloca el mismo dedo de nuevo.';
+      },
+      error: (err) => {
+        this.fpStep = 'idle';
+        this.error = err.error?.error || 'Error al escanear. Verifica el sensor.';
+      },
+    });
+  }
+
+  scanSecond() {
+    this.fpStep = 'scanning2';
+    this.fpMessage = '';
+    this.error = '';
+    this.success = '';
+
+    this.fingerprintService.registerConfirm().subscribe({
+      next: (res) => {
+        if (!res.match) {
+          this.fpStep = 'idle';
+          this.error = res.error || 'Las huellas no coinciden. Intenta de nuevo.';
+          return;
+        }
+
+        this.fpStep = 'registering';
+        this.fpMessage = 'Huella verificada. Registrando en tu cuenta...';
+
+        this.fingerprintService.register(String(res.position)).subscribe({
+          next: (msg) => {
+            this.fingerprintRegistered = true;
+            this.fpStep = 'done';
+            this.success = msg.message;
+          },
+          error: (err) => {
+            this.fpStep = 'idle';
+            this.error = err.error?.error || 'Error al registrar huella en el servidor';
+          },
+        });
+      },
+      error: (err) => {
+        this.fpStep = 'idle';
+        this.error = err.error?.error || 'Error al confirmar huella';
+      },
+    });
+  }
+
+  cancelFingerprint() {
+    this.fpStep = 'idle';
+    this.fpMessage = '';
+    this.error = '';
+    this.success = '';
+  }
+
+  removeFingerprint() {
+    if (!confirm('¿Eliminar tu huella registrada? Podras registrarla de nuevo despues.')) return;
+
+    this.error = '';
+    this.success = '';
+
+    this.fingerprintService.remove().subscribe({
+      next: (res) => {
+        this.fingerprintRegistered = false;
+        this.success = res.message;
+      },
+      error: (err) => {
+        this.error = err.error?.error || 'Error al eliminar huella';
+      },
     });
   }
 
