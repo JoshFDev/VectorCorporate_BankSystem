@@ -18,4 +18,7 @@ export const env = {
     get EMAIL_USER() { return process.env.EMAIL_USER || ''; },
     get EMAIL_PASS() { return process.env.EMAIL_PASS || ''; },
     get ABSTRACT_API_KEY() { return process.env.ABSTRACT_API_KEY || ''; },
+    get JWT_REFRESH_SECRET() { return process.env.JWT_REFRESH_SECRET || env.JWT_SECRET + '_refresh'; },
+    get JWT_EXPIRES() { return process.env.JWT_EXPIRES || '15m'; },
+    get JWT_REFRESH_EXPIRES() { return process.env.JWT_REFRESH_EXPIRES || '7d'; },
 };

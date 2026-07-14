@@ -2,7 +2,7 @@ import { Response } from 'express';
 import crypto from 'crypto';
 import User from '../models/User';
 import Account from '../models/Account';
-import { hashPassword, comparePassword, generateToken } from '../services/auth';
+import { hashPassword, comparePassword, generateToken, generateRefreshToken, verifyRefreshToken } from '../services/auth';
 import { validateEmail } from '../services/validation';
 import { generateAccountNumber } from '../services/account.service';
 import { logAudit } from '../services/audit.service';
@@ -29,7 +29,10 @@ export async function register(req: AuthRequest, res: Response) {
         await logAudit({ userId: user._id.toString(), action: 'register', detail: `Usuario ${name} registrado con cuenta ${accountNumber}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { email, accountNumber } });
 
         const token = generateToken(user._id.toString());
-        res.status(201).json({ message: 'Usuario creado exitosamente', token, user: { id: user._id, name: user.name, email: user.email }, account: { number: account.accountNumber, type: account.type, balance: account.balance } });
+        const refreshToken = generateRefreshToken(user._id.toString());
+        user.refreshToken = refreshToken;
+        await user.save();
+        res.status(201).json({ message: 'Usuario creado exitosamente', token, refreshToken, user: { id: user._id, name: user.name, email: user.email }, account: { number: account.accountNumber, type: account.type, balance: account.balance } });
     } catch (error) {
         res.status(500).json({ error: 'Error al registrar usuario' });
     }
@@ -49,7 +52,10 @@ export async function login(req: AuthRequest, res: Response) {
         await logAudit({ userId: user._id.toString(), action: 'login', detail: `Inicio de sesion: ${email}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { email } });
 
         const token = generateToken(user._id.toString());
-        res.json({ message: 'Inicio de sesion exitoso', token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+        const refreshToken = generateRefreshToken(user._id.toString());
+        user.refreshToken = refreshToken;
+        await user.save();
+        res.json({ message: 'Inicio de sesion exitoso', token, refreshToken, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
     } catch (error) {
         res.status(500).json({ error: 'Error al iniciar sesion' });
     }
@@ -74,7 +80,10 @@ export async function loginFingerprint(req: AuthRequest, res: Response) {
         await logAudit({ userId: user._id.toString(), action: 'login', detail: `Inicio de sesion por huella: ${email}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { email, method: 'fingerprint' } });
 
         const token = generateToken(user._id.toString());
-        res.json({ message: 'Inicio de sesion exitoso', token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+        const refreshToken = generateRefreshToken(user._id.toString());
+        user.refreshToken = refreshToken;
+        await user.save();
+        res.json({ message: 'Inicio de sesion exitoso', token, refreshToken, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
     } catch (error) {
         res.status(500).json({ error: 'Error al iniciar sesion con huella' });
     }
@@ -89,6 +98,7 @@ export async function changePassword(req: AuthRequest, res: Response) {
         if (!await comparePassword(currentPassword, user.password)) return res.status(401).json({ error: 'Contraseña actual incorrecta' });
 
         user.password = await hashPassword(newPassword);
+        user.refreshToken = null;
         await user.save();
 
         await logAudit({ userId: user._id.toString(), action: 'update_profile', detail: 'Contraseña cambiada', ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: {} });
@@ -126,11 +136,36 @@ export async function resetPassword(req: AuthRequest, res: Response) {
         user.password = await hashPassword(newPassword);
         user.resetPasswordToken = null;
         user.resetPasswordExpires = null;
+        user.refreshToken = null;
         await user.save();
 
         await logAudit({ userId: user._id.toString(), action: 'update_profile', detail: 'Contrasena restablecida via email', ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: {} });
         res.json({ message: 'Contrasena actualizada exitosamente' });
     } catch (error) {
         res.status(500).json({ error: 'Error al restablecer contrasena' });
+    }
+}
+
+export async function refresh(req: AuthRequest, res: Response) {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) return res.status(400).json({ error: 'Refresh token requerido' });
+
+        const decoded = verifyRefreshToken(refreshToken);
+        if (!decoded) return res.status(401).json({ error: 'Refresh token invalido o expirado' });
+
+        const user = await User.findById(decoded.id);
+        if (!user || user.refreshToken !== refreshToken) {
+            return res.status(401).json({ error: 'Refresh token invalido' });
+        }
+
+        const newToken = generateToken(user._id.toString());
+        const newRefreshToken = generateRefreshToken(user._id.toString());
+        user.refreshToken = newRefreshToken;
+        await user.save();
+
+        res.json({ token: newToken, refreshToken: newRefreshToken });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al refrescar token' });
     }
 }

@@ -12,5 +12,19 @@ export async function comparePassword(password: string, hash: string): Promise<b
 }
 
 export function generateToken(userId: string): string {
-    return jwt.sign({ id: userId }, env.JWT_SECRET, { expiresIn: '24h' });
+    return jwt.sign({ id: userId }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES });
+}
+
+export function generateRefreshToken(userId: string): string {
+    return jwt.sign({ id: userId, type: 'refresh' }, env.JWT_REFRESH_SECRET, { expiresIn: env.JWT_REFRESH_EXPIRES });
+}
+
+export function verifyRefreshToken(token: string): { id: string } | null {
+    try {
+        const decoded = jwt.verify(token, env.JWT_REFRESH_SECRET) as { id: string; type: string };
+        if (decoded.type !== 'refresh') return null;
+        return { id: decoded.id };
+    } catch {
+        return null;
+    }
 }
