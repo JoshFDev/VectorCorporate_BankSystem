@@ -10,6 +10,7 @@ import { NotificationBellComponent } from '../../components/notification-bell.co
 import { SocketService } from '../../services/socket.service';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
+import { ForexService, CurrencyRate } from '../../services/forex.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -45,6 +46,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private notifTimer: any = null;
 
   monthlyData: MonthlySummary[] = [];
+  greeting = '';
 
   barChartData: ChartData<'bar'> = { labels: [], datasets: [] };
   barChartOptions: ChartConfiguration<'bar'>['options'] = {
@@ -93,21 +95,38 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   };
 
+  // Forex
+  forexRates: CurrencyRate[] = [];
+  forexLoading = false;
+  forexBase = 'GTQ';
+  convertFrom = 'USD';
+  convertTo = 'GTQ';
+  convertAmount = 1;
+  convertResult: number | null = null;
+  convertRate: number | null = null;
+  showForexConverter = false;
+
   constructor(
     private auth: AuthService,
     private accountSvc: AccountService,
     private txnSvc: TransactionService,
     private router: Router,
     private socket: SocketService,
+    private forexSvc: ForexService,
   ) {}
 
   ngOnInit() {
+    this.setGreeting();
     this.auth.ready$.subscribe((ready) => {
       if (!ready) return;
       const u = (this.auth as any).userSubject.value;
       this.user = u;
-      if (u) this.loadData();
-      else this.router.navigate(['/login']);
+      if (u) {
+        this.loadData();
+        this.loadForexRates();
+      } else {
+        this.router.navigate(['/login']);
+      }
     });
 
     this.socket.transferReceived$.subscribe((data) => {
@@ -123,6 +142,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.notifTimer) clearTimeout(this.notifTimer);
+  }
+
+  setGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) this.greeting = 'Buenos días';
+    else if (hour < 19) this.greeting = 'Buenas tardes';
+    else this.greeting = 'Buenas noches';
   }
 
   private loadData() {
@@ -220,8 +246,59 @@ export class DashboardComponent implements OnInit, OnDestroy {
     };
   }
 
+  // Forex
+  loadForexRates() {
+    this.forexLoading = true;
+    this.forexSvc.getRates(this.forexBase).subscribe({
+      next: (res) => {
+        this.forexRates = res.rates.slice(0, 5);
+        this.forexLoading = false;
+      },
+      error: () => {
+        this.forexLoading = false;
+      },
+    });
+  }
+
+  doConvert() {
+    if (!this.convertAmount || this.convertAmount <= 0) return;
+    this.forexSvc.convert(this.convertFrom, this.convertTo, this.convertAmount).subscribe({
+      next: (res) => {
+        this.convertResult = res.result;
+        this.convertRate = res.rate;
+      },
+      error: () => {
+        this.convertResult = null;
+        this.convertRate = null;
+      },
+    });
+  }
+
+  swapCurrencies() {
+    const temp = this.convertFrom;
+    this.convertFrom = this.convertTo;
+    this.convertTo = temp;
+    if (this.convertResult !== null) {
+      this.convertAmount = this.convertResult;
+      this.convertResult = null;
+      this.doConvert();
+    }
+  }
+
+  getChangeClass(change: number): string {
+    return change > 0 ? 'positive' : change < 0 ? 'negative' : '';
+  }
+
   get totalBalance(): number {
     return this.accounts.reduce((sum, a) => sum + (a.isActive ? a.balance : 0), 0);
+  }
+
+  get activeAccounts(): number {
+    return this.accounts.filter(a => a.isActive).length;
+  }
+
+  get recentTransactionsCount(): number {
+    return this.transactions.length;
   }
 
   formatCurrency(amount: number): string {
@@ -245,6 +322,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   accountTypeLabel(type: string): string {
     return type === 'savings' ? 'Ahorros' : 'Corriente';
+  }
+
+  accountTypeIcon(type: string): string {
+    return type === 'savings' ? 'AH' : 'CO';
   }
 
   logout() {

@@ -16,7 +16,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       </a>
       <span class="user-name">{{ user?.name }}</span>
-      <button class="btn-logout" (click)="logout()" title="Cerrar sesión">
+      <button class="btn-logout" (click)="logout()" title="Cerrar sesion">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       </button>
     </div>
@@ -37,16 +37,184 @@
       <button class="notif-close" (click)="notification = null">&times;</button>
     </div>
 
-    <section class="balance-card">
-      <div class="balance-label">Saldo total disponible</div>
-      <div class="balance-amount">{{ formatCurrency(totalBalance) }}</div>
-      <div class="balance-note">{{ accounts.length }} cuenta{{ accounts.length !== 1 ? 's' : '' }}</div>
-    </section>
+    <!-- Top row: Balance + Actions -->
+    <div class="top-row">
+      <section class="balance-card">
+        <div class="balance-top">
+          <div>
+            <div class="balance-greeting">{{ greeting }}, {{ user?.name?.split(' ')[0] }}</div>
+            <div class="balance-label">Saldo total disponible</div>
+            <div class="balance-amount">{{ formatCurrency(totalBalance) }}</div>
+          </div>
+          <div class="balance-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M6 12h.01M18 12h.01"/></svg>
+          </div>
+        </div>
+        <div class="balance-stats">
+          <div class="stat">
+            <span class="stat-value">{{ activeAccounts }}</span>
+            <span class="stat-label">Cuenta{{ activeAccounts !== 1 ? 's' : '' }}</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-value">{{ recentTransactionsCount }}</span>
+            <span class="stat-label">Movimientos</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat">
+            <span class="stat-value stat-active">Activo</span>
+            <span class="stat-label">Estado</span>
+          </div>
+        </div>
+      </section>
 
-    <!-- Charts Section -->
+      <section class="actions-card">
+        <h3 class="section-label">Acciones rapidas</h3>
+        <div class="actions-grid">
+          <button class="action-btn deposit" [disabled]="!selectedAccount" (click)="openModal('deposit')">
+            <div class="action-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <span class="action-label">Depositar</span>
+          </button>
+          <button class="action-btn withdraw" [disabled]="!selectedAccount" (click)="openModal('withdraw')">
+            <div class="action-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </div>
+            <span class="action-label">Retirar</span>
+          </button>
+          <button class="action-btn transfer" [disabled]="!selectedAccount" (click)="openModal('transfer')">
+            <div class="action-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            </div>
+            <span class="action-label">Transferir</span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Main grid: Accounts | Forex | Transactions -->
+    <div class="main-grid">
+      <!-- Left: Accounts -->
+      <section class="card accounts-card">
+        <div class="card-header-row">
+          <h3 class="card-title">Cuentas</h3>
+          <button class="btn-text" (click)="openModal('createAccount')">+ Nueva</button>
+        </div>
+        <div class="account-list">
+          <div class="account-item" *ngFor="let acc of accounts" [class.active]="selectedAccount?.number === acc.number" (click)="selectAccount(acc)">
+            <div class="account-icon-wrap" [class]="acc.type">
+              <span>{{ accountTypeIcon(acc.type) }}</span>
+            </div>
+            <div class="account-info">
+              <div class="account-type">{{ accountTypeLabel(acc.type) }}</div>
+              <div class="account-number">{{ acc.number }}</div>
+            </div>
+            <div class="account-right">
+              <div class="account-balance">{{ formatCurrency(acc.balance) }}</div>
+              <div class="account-status" [class.active-status]="acc.isActive">{{ acc.isActive ? 'Activa' : 'Inactiva' }}</div>
+            </div>
+          </div>
+          <div class="empty" *ngIf="accounts.length === 0">
+            <p>No tienes cuentas aun</p>
+            <button class="btn-create" (click)="openModal('createAccount')">Crear cuenta</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Center: Forex -->
+      <section class="card forex-card">
+        <div class="card-header-row">
+          <h3 class="card-title">Tipo de cambio</h3>
+          <button class="btn-icon" (click)="showForexConverter = !showForexConverter" title="Convertir moneda">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          </button>
+        </div>
+
+        <!-- Converter -->
+        <div class="forex-converter" *ngIf="showForexConverter">
+          <div class="converter-row">
+            <div class="converter-field">
+              <label>De</label>
+              <select [(ngModel)]="convertFrom" class="converter-select">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="GTQ">GTQ</option>
+                <option value="MXN">MXN</option>
+              </select>
+            </div>
+            <button class="swap-btn" (click)="swapCurrencies()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            </button>
+            <div class="converter-field">
+              <label>A</label>
+              <select [(ngModel)]="convertTo" class="converter-select">
+                <option value="GTQ">GTQ</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="MXN">MXN</option>
+              </select>
+            </div>
+          </div>
+          <div class="converter-amount">
+            <input type="number" [(ngModel)]="convertAmount" min="0" placeholder="Monto" class="amount-input" (input)="doConvert()" />
+          </div>
+          <div class="converter-result" *ngIf="convertResult !== null">
+            <span class="result-amount">{{ convertResult | number:'1.2-2' }} {{ convertTo }}</span>
+            <span class="result-rate">1 {{ convertFrom }} = {{ convertRate }} {{ convertTo }}</span>
+          </div>
+        </div>
+
+        <!-- Rates list -->
+        <div class="forex-rates" *ngIf="!forexLoading">
+          <div class="rate-item" *ngFor="let rate of forexRates">
+            <div class="rate-info">
+              <span class="rate-code">{{ rate.code }}</span>
+              <span class="rate-name">{{ rate.name }}</span>
+            </div>
+            <div class="rate-value">
+              <span class="rate-number">{{ rate.rate | number:'1.4-4' }}</span>
+              <span class="rate-change" [class]="getChangeClass(rate.change)">
+                {{ rate.change > 0 ? '+' : '' }}{{ rate.changePercent }}%
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="forex-loading" *ngIf="forexLoading">
+          <div class="mini-spinner"></div>
+          <span>Cargando tasas...</span>
+        </div>
+      </section>
+
+      <!-- Right: Transactions -->
+      <section class="card txn-card">
+        <div class="card-header-row">
+          <h3 class="card-title">Movimientos recientes</h3>
+          <a routerLink="/transactions" class="btn-text">Ver todos</a>
+        </div>
+        <div class="txn-list">
+          <div class="txn-item" *ngFor="let t of transactions">
+            <div class="txn-icon" [class]="txnClass(t.type)">{{ txnIcon(t.type) }}</div>
+            <div class="txn-info">
+              <div class="txn-label">{{ txnLabel(t.type) }}</div>
+              <div class="txn-date">{{ t.createdAt | date:'dd MMM, h:mm a' }}</div>
+            </div>
+            <div class="txn-amount" [class]="txnClass(t.type)">
+              {{ t.type === 'deposit' || t.type === 'transfer_in' ? '+' : '-' }}{{ formatCurrency(t.amount) }}
+            </div>
+          </div>
+          <div class="empty" *ngIf="!selectedAccount">Selecciona una cuenta</div>
+          <div class="empty" *ngIf="selectedAccount && transactions.length === 0">Sin movimientos</div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Charts -->
     <section class="charts-section" *ngIf="monthlyData.length > 0">
       <div class="chart-card">
-        <h3 class="chart-title">Movimientos por mes (6 meses)</h3>
+        <h3 class="card-title">Movimientos por mes</h3>
         <div class="chart-container">
           <canvas baseChart
             [data]="barChartData"
@@ -56,7 +224,7 @@
         </div>
       </div>
       <div class="chart-card chart-card-small">
-        <h3 class="chart-title">Distribución total</h3>
+        <h3 class="card-title">Distribucion</h3>
         <div class="chart-container chart-container-doughnut">
           <canvas baseChart
             [data]="doughnutChartData"
@@ -66,58 +234,6 @@
         </div>
       </div>
     </section>
-
-    <section class="actions">
-      <button class="action-btn deposit" [disabled]="!selectedAccount" (click)="openModal('deposit')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Depositar
-      </button>
-      <button class="action-btn withdraw" [disabled]="!selectedAccount" (click)="openModal('withdraw')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        Retirar
-      </button>
-      <button class="action-btn transfer" [disabled]="!selectedAccount" (click)="openModal('transfer')">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-        Transferir
-      </button>
-    </section>
-
-    <div class="columns">
-      <section class="card accounts-card">
-        <h3 class="card-title">Tus cuentas</h3>
-        <div class="account-item" *ngFor="let acc of accounts" [class.active]="selectedAccount?.number === acc.number" (click)="selectAccount(acc)">
-          <div class="account-info">
-            <div class="account-type">{{ accountTypeLabel(acc.type) }}</div>
-            <div class="account-number">{{ acc.number }}</div>
-          </div>
-          <div class="account-balance">{{ formatCurrency(acc.balance) }}</div>
-          <div class="account-status" [class.active-status]="acc.isActive">{{ acc.isActive ? 'Activa' : 'Inactiva' }}</div>
-        </div>
-        <div class="empty" *ngIf="accounts.length === 0">
-          <p>No tienes cuentas aún</p>
-          <button class="btn-create" (click)="openModal('createAccount')">Crear cuenta</button>
-        </div>
-        <div class="create-link" *ngIf="accounts.length > 0">
-          <button (click)="openModal('createAccount')">+ Nueva cuenta</button>
-        </div>
-      </section>
-
-      <section class="card txn-card">
-        <h3 class="card-title">Movimientos recientes <a routerLink="/transactions" class="see-all">Ver todos</a></h3>
-        <div class="txn-item" *ngFor="let t of transactions">
-          <div class="txn-icon" [class]="txnClass(t.type)">{{ txnIcon(t.type) }}</div>
-          <div class="txn-info">
-            <div class="txn-label">{{ txnLabel(t.type) }}</div>
-            <div class="txn-date">{{ t.createdAt | date:'dd MMM yyyy, h:mm a' }}</div>
-          </div>
-          <div class="txn-amount" [class]="txnClass(t.type)">
-            {{ t.type === 'deposit' || t.type === 'transfer_in' ? '+' : '-' }}{{ formatCurrency(t.amount) }}
-          </div>
-        </div>
-        <div class="empty" *ngIf="!selectedAccount">Selecciona una cuenta</div>
-        <div class="empty" *ngIf="selectedAccount && transactions.length === 0">Sin movimientos</div>
-      </section>
-    </div>
   </main>
 </div>
 
@@ -158,7 +274,6 @@
 <!-- Transfer Modal -->
 <app-modal [open]="showTransfer" title="Transferir" (close)="closeModal('transfer')">
   <div class="modal-txn">
-    <!-- Step 1: Form -->
     <ng-container *ngIf="!confirmTransfer">
       <p class="modal-account">Desde: {{ selectedAccount?.number }} · {{ accountTypeLabel(selectedAccount?.type || '') }}</p>
       <p class="modal-balance">Saldo disponible: {{ formatCurrency(selectedAccount?.balance || 0) }}</p>
@@ -173,7 +288,6 @@
       <button class="btn-submit" (click)="doTransfer()" [disabled]="transferAmount <= 0 || transferAmount > (selectedAccount?.balance || 0) || !transferTo">Continuar</button>
     </ng-container>
 
-    <!-- Step 2: Confirmation -->
     <ng-container *ngIf="confirmTransfer">
       <div class="confirm-box">
         <div class="confirm-icon">
