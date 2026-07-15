@@ -84,6 +84,23 @@ router.post('/register-scan', async (_req: Request, res: Response) => {
  *       500:
  *         description: Error al escanear
  */
+router.delete('/delete-template/:position', async (req: Request, res: Response) => {
+    try {
+        const data = await proxy(`/delete-template/${req.params.position}`, 'DELETE');
+        res.json(data);
+    } catch (e: any) {
+        res.status(e.status || 500).json({ error: e.error || 'Error al eliminar template' });
+    }
+});
+
+router.delete('/delete-all', async (_req: Request, res: Response) => {
+    try {
+        res.json(await proxy('/delete-all', 'DELETE'));
+    } catch (e: any) {
+        res.status(e.status || 500).json({ error: e.error || 'Error al eliminar templates' });
+    }
+});
+
 router.post('/register-confirm', async (_req: Request, res: Response) => {
     try {
         res.json(await proxy('/register-confirm', 'POST'));

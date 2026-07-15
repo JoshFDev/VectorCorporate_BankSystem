@@ -36,4 +36,12 @@ export class FingerprintService {
   registerConfirm(): Observable<{ match: boolean; position?: number; error?: string }> {
     return this.http.post<{ match: boolean; position?: number; error?: string }>(`${this.api}/sensor/register-confirm`, {});
   }
+
+  deleteTemplate(position: number): Observable<{ deleted: boolean; position: number }> {
+    return this.http.delete<{ deleted: boolean; position: number }>(`${this.api}/sensor/delete-template/${position}`);
+  }
+
+  deleteAllTemplates(): Observable<{ deleted: number }> {
+    return this.http.delete<{ deleted: number }>(`${this.api}/sensor/delete-all`);
+  }
 }

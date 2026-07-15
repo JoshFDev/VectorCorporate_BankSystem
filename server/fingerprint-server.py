@@ -67,6 +67,35 @@ def identify():
             return jsonify({"error": str(e)}), 500
 
 
+@app.route("/delete-template/<int:position>", methods=["DELETE"])
+def delete_template(position):
+    with sensor_lock:
+        if sensor is None:
+            if not conectar_sensor():
+                return jsonify({"error": "Sensor no conectado"}), 503
+        try:
+            deleted = sensor.deleteTemplate(position)
+            return jsonify({"deleted": deleted, "position": position})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
+@app.route("/delete-all", methods=["DELETE"])
+def delete_all():
+    with sensor_lock:
+        if sensor is None:
+            if not conectar_sensor():
+                return jsonify({"error": "Sensor no conectado"}), 503
+        try:
+            count = 0
+            while sensor.getTemplateCount() > 0:
+                sensor.deleteTemplate(0)
+                count += 1
+            return jsonify({"deleted": count})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+
 @app.route("/register-scan", methods=["POST"])
 def register_scan():
     with sensor_lock:

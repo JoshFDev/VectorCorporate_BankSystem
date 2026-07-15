@@ -189,17 +189,36 @@ export class ProfileComponent implements OnInit {
         this.fpStep = 'registering';
         this.fpMessage = 'Huella verificada. Registrando en tu cuenta...';
 
-        this.fingerprintService.register(String(res.position)).subscribe({
-          next: (msg) => {
-            this.fingerprintRegistered = true;
-            this.fpStep = 'done';
-            this.success = msg.message;
-          },
-          error: (err) => {
-            this.fpStep = 'idle';
-            this.error = err.error?.error || 'Error al registrar huella en el servidor';
-          },
-        });
+        const deleteThenRegister = () => {
+          this.fingerprintService.register(String(res.position)).subscribe({
+            next: (msg) => {
+              this.fingerprintRegistered = true;
+              this.fpStep = 'done';
+              this.success = msg.message;
+            },
+            error: (err) => {
+              this.fpStep = 'idle';
+              this.error = err.error?.error || 'Error al registrar huella en el servidor';
+            },
+          });
+        };
+
+        if (this.fingerprintRegistered) {
+          this.fingerprintService.getStatus().subscribe({
+            next: () => {
+              this.fingerprintService.deleteAllTemplates().subscribe({
+                next: () => deleteThenRegister(),
+                error: () => deleteThenRegister(),
+              });
+            },
+            error: () => deleteThenRegister(),
+          });
+        } else {
+          this.fingerprintService.deleteAllTemplates().subscribe({
+            next: () => deleteThenRegister(),
+            error: () => deleteThenRegister(),
+          });
+        }
       },
       error: (err) => {
         this.fpStep = 'idle';
