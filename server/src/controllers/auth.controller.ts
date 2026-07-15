@@ -41,7 +41,9 @@ export async function register(req: AuthRequest, res: Response) {
 export async function login(req: AuthRequest, res: Response) {
     try {
         const { email, password } = req.body;
-        const user = await User.findOne({ email });
+        const isPhone = /^\d{8,15}$/.test(email);
+        const query = isPhone ? { phone: email } : { email };
+        const user = await User.findOne(query);
         if (!user) return res.status(401).json({ error: 'Credenciales invalidas' });
 
         if (!await comparePassword(password, user.password)) return res.status(401).json({ error: 'Credenciales invalidas' });

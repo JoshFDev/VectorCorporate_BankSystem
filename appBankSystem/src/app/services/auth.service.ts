@@ -39,14 +39,14 @@ export class AuthService {
     );
   }
 
-  login(email: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, { email, password }).pipe(
+  login(identifier: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, { email: identifier, password }).pipe(
       tap(res => this.setSession(res))
     );
   }
 
-  loginWithFingerprint(email: string, sensorPosition: number): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login-fingerprint`, { email, sensorPosition }).pipe(
+  loginWithFingerprint(identifier: string, sensorPosition: number): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login-fingerprint`, { email: identifier, sensorPosition }).pipe(
       tap(res => this.setSession(res))
     );
   }

@@ -37,7 +37,7 @@ export class LoginComponent implements OnInit {
     private router: Router
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      identifier: ['', Validators.required],
       password: ['', Validators.required]
     });
   }
@@ -85,8 +85,8 @@ export class LoginComponent implements OnInit {
     const saved = localStorage.getItem('vb_remember');
     if (saved === 'true') {
       this.rememberMe = true;
-      const savedEmail = localStorage.getItem('vb_email');
-      if (savedEmail) this.loginForm.patchValue({ email: savedEmail });
+      const savedId = localStorage.getItem('vb_identifier');
+      if (savedId) this.loginForm.patchValue({ identifier: savedId });
     }
   }
 
@@ -94,18 +94,18 @@ export class LoginComponent implements OnInit {
     this.rememberMe = !this.rememberMe;
     if (this.rememberMe) {
       localStorage.setItem('vb_remember', 'true');
-      const email = this.loginForm.get('email')?.value;
-      if (email) localStorage.setItem('vb_email', email);
+      const val = this.loginForm.get('identifier')?.value;
+      if (val) localStorage.setItem('vb_identifier', val);
     } else {
       localStorage.removeItem('vb_remember');
-      localStorage.removeItem('vb_email');
+      localStorage.removeItem('vb_identifier');
     }
   }
 
-  private saveEmailIfRemembered() {
+  private saveIdentifierIfRemembered() {
     if (this.rememberMe) {
-      const email = this.loginForm.get('email')?.value;
-      if (email) localStorage.setItem('vb_email', email);
+      const val = this.loginForm.get('identifier')?.value;
+      if (val) localStorage.setItem('vb_identifier', val);
     }
   }
 
@@ -123,9 +123,9 @@ export class LoginComponent implements OnInit {
   }
 
   scanFingerprint() {
-    const email = this.loginForm.get('email')?.value;
-    if (!email || this.loginForm.get('email')?.invalid) {
-      this.error = 'Ingresa tu correo primero';
+    const identifier = this.loginForm.get('identifier')?.value;
+    if (!identifier) {
+      this.error = 'Ingresa tu correo o teléfono primero';
       this.triggerShake();
       return;
     }
@@ -144,7 +144,7 @@ export class LoginComponent implements OnInit {
           return;
         }
         this.submitting = true;
-        this.auth.loginWithFingerprint(email, res.position!).subscribe({
+        this.auth.loginWithFingerprint(identifier, res.position!).subscribe({
           next: () => {
             this.loginSuccess = true;
             setTimeout(() => this.router.navigate(['/dashboard']), 1500);
@@ -171,9 +171,9 @@ export class LoginComponent implements OnInit {
     if (this.loginForm.invalid || this.submitting) return;
     this.error = '';
     this.submitting = true;
-    this.saveEmailIfRemembered();
-    const { email, password } = this.loginForm.value;
-    this.auth.login(email!, password!)
+    this.saveIdentifierIfRemembered();
+    const { identifier, password } = this.loginForm.value;
+    this.auth.login(identifier!, password!)
       .subscribe({
         next: () => {
           this.loginSuccess = true;
