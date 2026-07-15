@@ -160,15 +160,31 @@ export class ProfileComponent implements OnInit {
     this.error = '';
     this.success = '';
 
-    this.fingerprintService.registerScan().subscribe({
-      next: () => {
-        this.fpStep = 'scanned1';
-        this.fpMessage = 'Primer escaneo listo. Coloca el mismo dedo de nuevo.';
+    const doScan = () => {
+      this.fingerprintService.registerScan().subscribe({
+        next: () => {
+          this.fpStep = 'scanned1';
+          this.fpMessage = 'Primer escaneo listo. Coloca el mismo dedo de nuevo.';
+        },
+        error: (err) => {
+          this.fpStep = 'idle';
+          this.error = err.error?.error || 'Error al escanear. Verifica el sensor.';
+        },
+      });
+    };
+
+    this.fingerprintService.getStatus().subscribe({
+      next: (status) => {
+        if (status.registered && status.position) {
+          this.fingerprintService.deleteTemplate(parseInt(status.position)).subscribe({
+            next: () => doScan(),
+            error: () => doScan(),
+          });
+        } else {
+          doScan();
+        }
       },
-      error: (err) => {
-        this.fpStep = 'idle';
-        this.error = err.error?.error || 'Error al escanear. Verifica el sensor.';
-      },
+      error: () => doScan(),
     });
   }
 
@@ -189,36 +205,17 @@ export class ProfileComponent implements OnInit {
         this.fpStep = 'registering';
         this.fpMessage = 'Huella verificada. Registrando en tu cuenta...';
 
-        const deleteThenRegister = () => {
-          this.fingerprintService.register(String(res.position)).subscribe({
-            next: (msg) => {
-              this.fingerprintRegistered = true;
-              this.fpStep = 'done';
-              this.success = msg.message;
-            },
-            error: (err) => {
-              this.fpStep = 'idle';
-              this.error = err.error?.error || 'Error al registrar huella en el servidor';
-            },
-          });
-        };
-
-        if (this.fingerprintRegistered) {
-          this.fingerprintService.getStatus().subscribe({
-            next: () => {
-              this.fingerprintService.deleteAllTemplates().subscribe({
-                next: () => deleteThenRegister(),
-                error: () => deleteThenRegister(),
-              });
-            },
-            error: () => deleteThenRegister(),
-          });
-        } else {
-          this.fingerprintService.deleteAllTemplates().subscribe({
-            next: () => deleteThenRegister(),
-            error: () => deleteThenRegister(),
-          });
-        }
+        this.fingerprintService.register(String(res.position)).subscribe({
+          next: (msg) => {
+            this.fingerprintRegistered = true;
+            this.fpStep = 'done';
+            this.success = msg.message;
+          },
+          error: (err) => {
+            this.fpStep = 'idle';
+            this.error = err.error?.error || 'Error al registrar huella en el servidor';
+          },
+        });
       },
       error: (err) => {
         this.fpStep = 'idle';

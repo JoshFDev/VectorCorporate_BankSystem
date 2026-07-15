@@ -9,8 +9,8 @@ export class FingerprintService {
 
   constructor(private http: HttpClient) {}
 
-  getStatus(): Observable<{ registered: boolean }> {
-    return this.http.get<{ registered: boolean }>(`${this.api}/fingerprint/status`);
+  getStatus(): Observable<{ registered: boolean; position?: string | null }> {
+    return this.http.get<{ registered: boolean; position?: string | null }>(`${this.api}/fingerprint/status`);
   }
 
   register(sensorId: string): Observable<{ message: string }> {

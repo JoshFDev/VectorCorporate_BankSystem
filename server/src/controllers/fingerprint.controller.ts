@@ -32,7 +32,9 @@ export async function getFingerprintStatus(req: AuthRequest, res: Response) {
         const user = await User.findById(req.user._id).select('fingerprint');
         if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-        res.json({ registered: !!user.fingerprint });
+        const registered = !!user.fingerprint;
+        const position = registered ? user.fingerprint.toString('utf-8') : null;
+        res.json({ registered, position });
     } catch (error) {
         res.status(500).json({ error: 'Error al consultar estado de huella' });
     }
