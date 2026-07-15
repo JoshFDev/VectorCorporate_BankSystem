@@ -1,42 +1,90 @@
 .admin-page { min-height: 100vh; background: #f1f5f9; }
 
-// Topbar (same as dashboard)
 .topbar {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 24px; height: 60px; background: #fff; border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 
-  .brand { display: flex; align-items: center; gap: 10px;
-    .brand-logo { height: 34px; width: auto; object-fit: contain; }
-    .brand-name { font-size: 18px; font-weight: 600; color: #1e293b; }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .brand-logo { height: 30px; width: auto; }
+    .brand-name { font-size: 16px; font-weight: 700; color: #0f172a; letter-spacing: -0.3px; }
   }
 
-  .user-area { display: flex; align-items: center; gap: 12px;
-    .back-link { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #1e40af; text-decoration: none; padding: 6px 10px; border-radius: 6px; transition: background 0.2s;
+  .user-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #1e40af;
+      text-decoration: none;
+      padding: 5px 10px;
+      border-radius: 6px;
+      transition: all 0.2s;
       &:hover { background: #eff6ff; }
     }
-    .user-name { font-size: 14px; color: #475569; }
-    .profile-link { color: #94a3b8; display: flex; padding: 6px; border-radius: 6px; transition: color 0.2s, background 0.2s;
+
+    .user-name { font-size: 13px; color: #475569; font-weight: 500; }
+
+    .profile-link {
+      color: #94a3b8;
+      display: flex;
+      padding: 5px;
+      border-radius: 6px;
+      transition: all 0.2s;
       &:hover { color: #1e40af; background: #eff6ff; }
     }
-    .btn-logout { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 6px; border-radius: 6px; transition: color 0.2s, background 0.2s;
+
+    .btn-logout {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 5px;
+      border-radius: 6px;
+      transition: all 0.2s;
       &:hover { color: #dc2626; background: #fef2f2; }
     }
   }
 }
 
-// Content
-.content { max-width: 1200px; margin: 0 auto; padding: 24px; }
+.content { padding: 24px 32px 40px; }
 
 .alert { padding: 10px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 20px; text-align: center;
   &.error { background: #fef2f2; color: #dc2626; }
 }
 
-// Stats row
-.stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
 
-.stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; text-align: center;
-  .stat-value { font-size: 24px; font-weight: 700; color: #1e293b; }
-  .stat-label { font-size: 12px; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+.stat-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+
+  .stat-value { font-size: 26px; font-weight: 700; color: #1e293b; }
+  .stat-label { font-size: 11px; color: #94a3b8; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
 }
 
 // Tabs
@@ -177,26 +225,19 @@
 
 .user-email { font-size: 12px; color: #94a3b8; }
 
+@media (max-width: 1024px) {
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+}
+
 @media (max-width: 768px) {
-  .topbar { padding: 0 16px;
-    .user-name { display: none; }
-    .back-link span { display: none; }
-  }
-
-  .content { padding: 16px; }
-
+  .topbar { padding: 0 16px; .user-name { display: none; } }
+  .content { padding: 20px 16px; }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
-
-  .filters { flex-direction: column;
-    input { min-width: 0; }
-  }
-
+  .filters { flex-direction: column; input { min-width: 0; } }
   .data-table { font-size: 13px;
     th, td { padding: 8px 6px; }
     .cell-date, .cell-ip { display: none; }
   }
-
   .cell-actions { flex-wrap: wrap; }
-
   .detail-grid { grid-template-columns: 1fr; }
 }
