@@ -51,6 +51,14 @@ export class AuthService {
     );
   }
 
+  sendVerificationCode(email: string): Observable<{ message: string; code?: string }> {
+    return this.http.post<{ message: string; code?: string }>(`${this.apiUrl}/auth/send-verification-code`, { email });
+  }
+
+  verifyEmailCode(email: string, code: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/verify-email-code`, { email, code });
+  }
+
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.refreshKey);

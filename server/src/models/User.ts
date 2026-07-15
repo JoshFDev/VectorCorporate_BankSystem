@@ -23,6 +23,8 @@ export interface IUser extends Document {
     resetPasswordExpires: Date | null;
     refreshToken: string | null;
     emailNotifications: boolean;
+    emailVerificationCode: string | null;
+    emailVerificationExpires: Date | null;
 }
 
 const userSchema = new Schema<IUser>({
@@ -70,6 +72,8 @@ const userSchema = new Schema<IUser>({
     resetPasswordExpires: { type: Date, default: null },
     refreshToken: { type: String, default: null },
     emailNotifications: { type: Boolean, default: true },
+    emailVerificationCode: { type: String, default: null },
+    emailVerificationExpires: { type: Date, default: null },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
     isActive: { type: Boolean, default: true },

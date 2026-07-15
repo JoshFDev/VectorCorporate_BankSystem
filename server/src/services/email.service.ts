@@ -32,6 +32,25 @@ export async function sendPasswordResetEmail(to: string, token: string): Promise
     });
 }
 
+export async function sendVerificationCodeEmail(to: string, code: string): Promise<void> {
+    await transporter.sendMail({
+        from: `"VectorBank" <${process.env.EMAIL_USER}>`,
+        to,
+        subject: 'Verifica tu correo - VectorBank',
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+                <h2 style="color: #1e40af;">VectorBank</h2>
+                <p>Gracias por registrarte. Usa el siguiente codigo para verificar tu correo electronico:</p>
+                <div style="background: #f8fafc; border: 2px dashed #1e40af; border-radius: 12px; padding: 24px; text-align: center; margin: 24px 0;">
+                    <p style="margin: 0; font-size: 32px; font-weight: 700; color: #1e40af; letter-spacing: 8px;">${code}</p>
+                </div>
+                <p style="color: #64748b; font-size: 13px;">Este codigo expira en 15 minutos.</p>
+                <p style="color: #64748b; font-size: 13px;">Si no solicitaste esto, ignora este correo.</p>
+            </div>
+        `,
+    });
+}
+
 interface TransactionEmailData {
     to: string;
     userName: string;

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller';
 import { validate } from '../middleware/validate';
-import { registerSchema, loginSchema, loginFingerprintSchema, changePasswordSchema, forgotPasswordSchema, resetPasswordSchema, refreshTokenSchema } from '../validations/auth.validation';
+import { registerSchema, loginSchema, loginFingerprintSchema, changePasswordSchema, forgotPasswordSchema, resetPasswordSchema, refreshTokenSchema, sendVerificationCodeSchema, verifyEmailCodeSchema } from '../validations/auth.validation';
 import { authMiddleware } from '../middleware/auth.middleware';
 import rateLimit from 'express-rate-limit';
 
@@ -231,5 +231,9 @@ router.post('/reset-password', validate(resetPasswordSchema), authController.res
  *         description: Refresh token invalido
  */
 router.post('/refresh', validate(refreshTokenSchema), authController.refresh);
+
+router.post('/send-verification-code', registerLimiter, validate(sendVerificationCodeSchema), authController.sendVerificationCode);
+
+router.post('/verify-email-code', validate(verifyEmailCodeSchema), authController.verifyEmailCode);
 
 export default router;

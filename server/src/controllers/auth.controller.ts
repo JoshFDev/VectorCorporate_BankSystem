@@ -6,7 +6,7 @@ import { hashPassword, comparePassword, generateToken, generateRefreshToken, ver
 import { validateEmail } from '../services/validation';
 import { generateAccountNumber } from '../services/account.service';
 import { logAudit } from '../services/audit.service';
-import { sendPasswordResetEmail } from '../services/email.service';
+import { sendPasswordResetEmail, sendVerificationCodeEmail } from '../services/email.service';
 import { AuthRequest } from '../middleware/auth.middleware';
 
 export async function register(req: AuthRequest, res: Response) {
@@ -169,5 +169,63 @@ export async function refresh(req: AuthRequest, res: Response) {
         res.json({ token: newToken, refreshToken: newRefreshToken });
     } catch (error) {
         res.status(500).json({ error: 'Error al refrescar token' });
+    }
+}
+
+export async function sendVerificationCode(req: AuthRequest, res: Response) {
+    try {
+        const { email } = req.body;
+
+        if (await User.findOne({ email })) {
+            return res.status(409).json({ error: 'Email ya registrado' });
+        }
+
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires = new Date(Date.now() + 15 * 60 * 1000);
+
+        let user = await User.findOne({ email });
+        if (!user) {
+            user = new User({ email, name: '', password: 'pending', dni: '', phone: '', dateOfBirth: new Date() });
+        }
+        user.emailVerificationCode = code;
+        user.emailVerificationExpires = expires;
+        await user.save();
+
+        try {
+            await sendVerificationCodeEmail(email, code);
+        } catch (e) {
+            console.error('Email send failed:', (e as Error).message);
+            if (process.env.NODE_ENV === 'development') {
+                return res.json({ message: 'Codigo generado (email no configurado)', code });
+            }
+        }
+
+        res.json({ message: 'Codigo de verificacion enviado a tu correo' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al enviar codigo de verificacion' });
+    }
+}
+
+export async function verifyEmailCode(req: AuthRequest, res: Response) {
+    try {
+        const { email, code } = req.body;
+
+        const user = await User.findOne({
+            email,
+            emailVerificationCode: code,
+            emailVerificationExpires: { $gt: new Date() },
+        });
+
+        if (!user) {
+            return res.status(400).json({ error: 'Codigo invalido o expirado' });
+        }
+
+        user.emailVerificationCode = null;
+        user.emailVerificationExpires = null;
+        await user.save();
+
+        res.json({ message: 'Correo verificado correctamente' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al verificar codigo' });
     }
 }

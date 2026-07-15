@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -39,7 +39,7 @@ function ageValidator(control: AbstractControl): ValidationErrors | null {
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit {
   registerForm;
   focusedField = '';
   showPassword = false;
@@ -47,11 +47,23 @@ export class RegisterComponent {
   isSubmitting = false;
   error = '';
   success = '';
+  showSuccess = false;
+
+  step: 'form' | 'code' | 'success' = 'form';
+  verificationCode = ['', '', '', '', '', ''];
+  codeError = '';
+  isSendingCode = false;
+  isVerifyingCode = false;
+  codeResendTimer = 0;
+  private resendInterval: any;
 
   countries = COUNTRIES;
   countryFilter = '';
   showCountryDropdown = false;
   countrySelected = false;
+
+  particles: { x: number; y: number; size: number; duration: number; delay: number }[] = [];
+  greeting = '';
 
   constructor(
     private fb: FormBuilder,
@@ -70,6 +82,28 @@ export class RegisterComponent {
       nationality: ['México'],
       occupation: [''],
     });
+  }
+
+  ngOnInit() {
+    this.generateParticles();
+    this.setGreeting();
+  }
+
+  generateParticles() {
+    this.particles = Array.from({ length: 20 }, () => ({
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 4 + 2,
+      duration: Math.random() * 8 + 6,
+      delay: Math.random() * 4,
+    }));
+  }
+
+  setGreeting() {
+    const hour = new Date().getHours();
+    if (hour < 12) this.greeting = 'Buenos días';
+    else if (hour < 19) this.greeting = 'Buenas tardes';
+    else this.greeting = 'Buenas noches';
   }
 
   get filteredCountries(): string[] {
@@ -158,6 +192,16 @@ export class RegisterComponent {
     return { weak: '#fef2f2', medium: '#fffbeb', strong: '#f0fdf4' }[this.passwordStrength] || '';
   }
 
+  get maskedEmail(): string {
+    const email = this.registerForm.get('email')?.value || '';
+    const [user, domain] = email.split('@');
+    if (!domain) return email;
+    const masked = user.length > 2
+      ? user[0] + '***' + user[user.length - 1]
+      : user[0] + '***';
+    return `${masked}@${domain}`;
+  }
+
   onSubmit(): void {
     if (this.registerForm.invalid) {
       this.registerForm.markAllAsTouched();
@@ -168,19 +212,134 @@ export class RegisterComponent {
       return;
     }
     this.error = '';
-    this.success = '';
-    this.isSubmitting = true;
+    this.isSendingCode = true;
 
+    const email = this.registerForm.get('email')?.value!;
+    this.auth.sendVerificationCode(email).subscribe({
+      next: (res) => {
+        this.isSendingCode = false;
+        this.step = 'code';
+        this.codeResendTimer = 60;
+        this.startResendTimer();
+        if (res.code) {
+          console.log('Código de verificación (dev):', res.code);
+        }
+      },
+      error: (err) => {
+        this.error = err.error?.error || 'Error al enviar código. Intente nuevamente.';
+        this.isSendingCode = false;
+      },
+    });
+  }
+
+  onCodeInput(index: number, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value.replace(/\D/g, '');
+
+    if (value.length === 1) {
+      this.verificationCode[index] = value;
+      if (index < 5) {
+        const next = input.parentElement?.querySelector(`input:nth-child(${index + 2})`) as HTMLInputElement;
+        next?.focus();
+      }
+    } else {
+      this.verificationCode[index] = '';
+    }
+
+    if (value.length > 1) {
+      this.verificationCode[index] = value[0];
+    }
+  }
+
+  onCodeKeydown(index: number, event: KeyboardEvent) {
+    if (event.key === 'Backspace' && !this.verificationCode[index] && index > 0) {
+      const prev = (event.target as HTMLElement).parentElement?.querySelector(`input:nth-child(${index})`) as HTMLInputElement;
+      prev?.focus();
+    }
+  }
+
+  onCodePaste(event: ClipboardEvent) {
+    event.preventDefault();
+    const pasted = event.clipboardData?.getData('text')?.replace(/\D/g, '') || '';
+    for (let i = 0; i < Math.min(6, pasted.length); i++) {
+      this.verificationCode[i] = pasted[i];
+    }
+    const inputs = document.querySelectorAll('.code-inputs input');
+    const focusIndex = Math.min(pasted.length, 5);
+    (inputs[focusIndex] as HTMLInputElement)?.focus();
+  }
+
+  verifyCode(): void {
+    const code = this.verificationCode.join('');
+    if (code.length !== 6) {
+      this.codeError = 'Ingresa los 6 dígitos';
+      return;
+    }
+
+    this.codeError = '';
+    this.isVerifyingCode = true;
+    const email = this.registerForm.get('email')?.value!;
+
+    this.auth.verifyEmailCode(email, code).subscribe({
+      next: () => {
+        this.registerUser();
+      },
+      error: (err) => {
+        this.codeError = err.error?.error || 'Código inválido';
+        this.isVerifyingCode = false;
+        this.verificationCode = ['', '', '', '', '', ''];
+        const inputs = document.querySelectorAll('.code-inputs input');
+        (inputs[0] as HTMLInputElement)?.focus();
+      },
+    });
+  }
+
+  private registerUser(): void {
+    this.isVerifyingCode = true;
     const { confirmPassword, ...data } = this.registerForm.value;
     this.auth.register(data).subscribe({
       next: () => {
-        this.success = '¡Registro completado! Redirigiendo...';
-        setTimeout(() => this.router.navigate(['/login']), 1500);
+        this.isVerifyingCode = false;
+        this.step = 'success';
+        this.showSuccess = true;
+        setTimeout(() => this.router.navigate(['/login']), 3000);
       },
       error: (err) => {
+        this.step = 'form';
         this.error = err.error?.error || 'Error al crear la cuenta. Intente nuevamente.';
-        this.isSubmitting = false;
+        this.isVerifyingCode = false;
       },
     });
+  }
+
+  private startResendTimer(): void {
+    if (this.resendInterval) clearInterval(this.resendInterval);
+    this.resendInterval = setInterval(() => {
+      this.codeResendTimer--;
+      if (this.codeResendTimer <= 0) {
+        clearInterval(this.resendInterval);
+      }
+    }, 1000);
+  }
+
+  resendCode(): void {
+    if (this.codeResendTimer > 0) return;
+    this.codeError = '';
+    const email = this.registerForm.get('email')?.value!;
+    this.auth.sendVerificationCode(email).subscribe({
+      next: () => {
+        this.codeResendTimer = 60;
+        this.startResendTimer();
+      },
+      error: () => {
+        this.codeError = 'Error al reenviar código';
+      },
+    });
+  }
+
+  backToForm(): void {
+    this.step = 'form';
+    this.verificationCode = ['', '', '', '', '', ''];
+    this.codeError = '';
   }
 }

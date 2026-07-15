@@ -39,3 +39,12 @@ export const resetPasswordSchema = z.object({
 export const refreshTokenSchema = z.object({
     refreshToken: z.string().min(1, 'Refresh token requerido'),
 });
+
+export const sendVerificationCodeSchema = z.object({
+    email: z.string().email('Email invalido'),
+});
+
+export const verifyEmailCodeSchema = z.object({
+    email: z.string().email('Email invalido'),
+    code: z.string().length(6, 'El codigo debe tener 6 digitos'),
+});

@@ -1,157 +1,234 @@
 <div class="register-wrapper">
-  <div class="register-card">
-    <div class="card-header">
-      <div class="brand">
+  <!-- Image Panel -->
+  <div class="image-panel">
+    <img src="assets/images/Bank.jpg" alt="VectorBank" class="hero-img" />
+    <div class="particles">
+      <span *ngFor="let p of particles" class="particle"
+        [style.left.%]="p.x" [style.top.%]="p.y"
+        [style.width.px]="p.size" [style.height.px]="p.size"
+        [style.animation-duration.s]="p.duration"
+        [style.animation-delay.s]="p.delay"></span>
+    </div>
+    <div class="brand-overlay">
+      <img src="assets/images/logoBanco.png" class="overlay-logo" />
+      <h1>VectorBank</h1>
+      <p>{{ greeting }}</p>
+    </div>
+  </div>
+
+  <!-- Form Panel -->
+  <div class="form-panel">
+    <div class="form-scroll">
+      <!-- Brand mobile -->
+      <div class="brand-mobile">
         <img src="assets/images/logoBanco.png" class="brand-logo" />
         <h1>VectorBank</h1>
       </div>
-      <p class="subtitle">Apertura de cuenta</p>
-    </div>
 
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
-      <div class="form-section">
-        <h3 class="section-title">Datos personales</h3>
-
-        <div class="field-group">
-          <div class="field">
-            <div class="input-wrap" [class.focused]="focusedField === 'name'" [class.has-value]="registerForm.get('name')?.value" [class.error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
-              <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <input formControlName="name" placeholder=" " (focus)="focusedField = 'name'" (blur)="focusedField = ''" autocomplete="name" />
-              <label>Nombre completo</label>
-            </div>
-            <small *ngIf="registerForm.get('name')?.touched && getErrorMessage('name')">{{ getErrorMessage('name') }}</small>
-          </div>
-
-          <div class="field">
-            <div class="input-wrap" [class.focused]="focusedField === 'email'" [class.has-value]="registerForm.get('email')?.value" [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
-              <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-              <input formControlName="email" type="email" placeholder=" " (focus)="focusedField = 'email'" (blur)="focusedField = ''" autocomplete="email" />
-              <label>Correo electrónico</label>
-            </div>
-            <small *ngIf="registerForm.get('email')?.touched && getErrorMessage('email')">{{ getErrorMessage('email') }}</small>
-          </div>
+      <!-- STEP: Form -->
+      <ng-container *ngIf="step === 'form'">
+        <div class="form-header">
+          <h2>Apertura de cuenta</h2>
+          <p>Crea tu cuenta en minutos</p>
         </div>
 
-        <div class="field-group">
-          <div class="field">
-            <div class="input-wrap" [class.focused]="focusedField === 'dni'" [class.has-value]="registerForm.get('dni')?.value" [class.error]="registerForm.get('dni')?.invalid && registerForm.get('dni')?.touched">
-              <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-              <input formControlName="dni" placeholder=" " (focus)="focusedField = 'dni'" (blur)="focusedField = ''" autocomplete="off" />
-              <label>CURP</label>
-            </div>
-            <small *ngIf="registerForm.get('dni')?.touched && getErrorMessage('dni')">{{ getErrorMessage('dni') }}</small>
-          </div>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+          <div class="form-section">
+            <h3 class="section-title">Datos personales</h3>
 
-          <div class="field">
-            <div class="input-wrap" [class.focused]="focusedField === 'phone'" [class.has-value]="registerForm.get('phone')?.value" [class.error]="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched">
-              <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-              <input formControlName="phone" type="tel" placeholder=" " (focus)="focusedField = 'phone'" (blur)="focusedField = ''" autocomplete="tel" />
-              <label>Teléfono</label>
-            </div>
-            <small *ngIf="registerForm.get('phone')?.touched && getErrorMessage('phone')">{{ getErrorMessage('phone') }}</small>
-          </div>
-        </div>
+            <div class="field-group">
+              <div class="field">
+                <div class="input-wrap" [class.focused]="focusedField === 'name'" [class.has-value]="registerForm.get('name')?.value" [class.error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+                  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <input formControlName="name" placeholder=" " (focus)="focusedField = 'name'" (blur)="focusedField = ''" autocomplete="name" />
+                  <label>Nombre completo</label>
+                </div>
+                <small *ngIf="registerForm.get('name')?.touched && getErrorMessage('name')">{{ getErrorMessage('name') }}</small>
+              </div>
 
-        <div class="field-group">
-          <div class="field">
-            <div class="input-wrap" [class.focused]="focusedField === 'dob'" [class.has-value]="registerForm.get('dateOfBirth')?.value" [class.error]="registerForm.get('dateOfBirth')?.invalid && registerForm.get('dateOfBirth')?.touched">
-              <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              <input formControlName="dateOfBirth" type="date" placeholder=" " (focus)="focusedField = 'dob'" (blur)="focusedField = ''" />
-              <label>Fecha de nacimiento</label>
-            </div>
-            <small *ngIf="registerForm.get('dateOfBirth')?.touched && getErrorMessage('dateOfBirth')">{{ getErrorMessage('dateOfBirth') }}</small>
-          </div>
-
-          <div class="field">
-            <div class="input-wrap country-wrap" [class.focused]="focusedField === 'nationality'" [class.has-value]="registerForm.get('nationality')?.value" [class.active-dropdown]="showCountryDropdown">
-              <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              <input
-                #countryInput
-                [value]="countryFilter || registerForm.get('nationality')?.value"
-                (input)="countryFilter = $any($event.target).value; onCountryInput()"
-                placeholder=" "
-                (focus)="onCountryFocus()"
-                (blur)="onCountryBlur()"
-                autocomplete="off"
-              />
-              <label>País</label>
-              <button type="button" class="dropdown-arrow" tabindex="-1">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              <ul class="country-dropdown" *ngIf="showCountryDropdown">
-                <li *ngFor="let c of filteredCountries" (mousedown)="selectCountry(c)">{{ c }}</li>
-                <li *ngIf="filteredCountries.length === 0" class="no-results">Sin resultados</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div class="field">
-          <div class="input-wrap" [class.focused]="focusedField === 'address'" [class.has-value]="registerForm.get('address')?.value">
-            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <input formControlName="address" placeholder=" " (focus)="focusedField = 'address'" (blur)="focusedField = ''" autocomplete="street-address" />
-            <label>Dirección</label>
-          </div>
-        </div>
-
-        <div class="field">
-          <div class="input-wrap" [class.focused]="focusedField === 'occupation'" [class.has-value]="registerForm.get('occupation')?.value">
-            <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-            <input formControlName="occupation" placeholder=" " (focus)="focusedField = 'occupation'" (blur)="focusedField = ''" />
-            <label>Ocupación</label>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3 class="section-title">Seguridad</h3>
-        <div class="field-group">
-          <div class="field">
-            <div class="input-wrap" [class.focused]="focusedField === 'password'" [class.has-value]="registerForm.get('password')?.value" [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
-              <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder=" " (focus)="focusedField = 'password'" (blur)="focusedField = ''" autocomplete="new-password" />
-              <label>Contraseña</label>
-              <button type="button" class="toggle-pwd" (click)="showPassword = !showPassword" tabindex="-1">
-                <svg *ngIf="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg *ngIf="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
-            </div>
-            <div class="pwd-strength" *ngIf="registerForm.get('password')?.value && registerForm.get('password')?.dirty" [style.background]="passwordStrengthBg">
-              <div class="pwd-label" [style.color]="passwordStrengthColor">{{ passwordStrengthLabel }}</div>
-              <div class="pwd-bar">
-                <div class="pwd-fill" [style.width.%]="passwordStrengthPercent" [style.background]="passwordStrengthColor"></div>
+              <div class="field">
+                <div class="input-wrap" [class.focused]="focusedField === 'email'" [class.has-value]="registerForm.get('email')?.value" [class.error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+                  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  <input formControlName="email" type="email" placeholder=" " (focus)="focusedField = 'email'" (blur)="focusedField = ''" autocomplete="email" />
+                  <label>Correo electrónico</label>
+                </div>
+                <small *ngIf="registerForm.get('email')?.touched && getErrorMessage('email')">{{ getErrorMessage('email') }}</small>
               </div>
             </div>
-            <small *ngIf="registerForm.get('password')?.touched && getErrorMessage('password')">{{ getErrorMessage('password') }}</small>
+
+            <div class="field-group">
+              <div class="field">
+                <div class="input-wrap" [class.focused]="focusedField === 'dni'" [class.has-value]="registerForm.get('dni')?.value" [class.error]="registerForm.get('dni')?.invalid && registerForm.get('dni')?.touched">
+                  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                  <input formControlName="dni" placeholder=" " (focus)="focusedField = 'dni'" (blur)="focusedField = ''" autocomplete="off" />
+                  <label>CURP</label>
+                </div>
+                <small *ngIf="registerForm.get('dni')?.touched && getErrorMessage('dni')">{{ getErrorMessage('dni') }}</small>
+              </div>
+
+              <div class="field">
+                <div class="input-wrap" [class.focused]="focusedField === 'phone'" [class.has-value]="registerForm.get('phone')?.value" [class.error]="registerForm.get('phone')?.invalid && registerForm.get('phone')?.touched">
+                  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  <input formControlName="phone" type="tel" placeholder=" " (focus)="focusedField = 'phone'" (blur)="focusedField = ''" autocomplete="tel" />
+                  <label>Teléfono</label>
+                </div>
+                <small *ngIf="registerForm.get('phone')?.touched && getErrorMessage('phone')">{{ getErrorMessage('phone') }}</small>
+              </div>
+            </div>
+
+            <div class="field-group">
+              <div class="field">
+                <div class="input-wrap date-wrap" [class.focused]="focusedField === 'dob'" [class.has-value]="registerForm.get('dateOfBirth')?.value" [class.error]="registerForm.get('dateOfBirth')?.invalid && registerForm.get('dateOfBirth')?.touched">
+                  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  <input formControlName="dateOfBirth" type="date" placeholder=" " (focus)="focusedField = 'dob'" (blur)="focusedField = ''" />
+                  <label class="date-label">Fecha de nacimiento</label>
+                </div>
+                <small *ngIf="registerForm.get('dateOfBirth')?.touched && getErrorMessage('dateOfBirth')">{{ getErrorMessage('dateOfBirth') }}</small>
+              </div>
+
+              <div class="field">
+                <div class="input-wrap country-wrap" [class.focused]="focusedField === 'nationality'" [class.has-value]="registerForm.get('nationality')?.value" [class.active-dropdown]="showCountryDropdown">
+                  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                  <input
+                    #countryInput
+                    [value]="countryFilter || registerForm.get('nationality')?.value"
+                    (input)="countryFilter = $any($event.target).value; onCountryInput()"
+                    placeholder=" "
+                    (focus)="onCountryFocus()"
+                    (blur)="onCountryBlur()"
+                    autocomplete="off"
+                  />
+                  <label>País</label>
+                  <button type="button" class="dropdown-arrow" tabindex="-1">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                  <ul class="country-dropdown" *ngIf="showCountryDropdown">
+                    <li *ngFor="let c of filteredCountries" (mousedown)="selectCountry(c)">{{ c }}</li>
+                    <li *ngIf="filteredCountries.length === 0" class="no-results">Sin resultados</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="input-wrap" [class.focused]="focusedField === 'address'" [class.has-value]="registerForm.get('address')?.value">
+                <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <input formControlName="address" placeholder=" " (focus)="focusedField = 'address'" (blur)="focusedField = ''" autocomplete="street-address" />
+                <label>Dirección</label>
+              </div>
+            </div>
+
+            <div class="field">
+              <div class="input-wrap" [class.focused]="focusedField === 'occupation'" [class.has-value]="registerForm.get('occupation')?.value">
+                <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                <input formControlName="occupation" placeholder=" " (focus)="focusedField = 'occupation'" (blur)="focusedField = ''" />
+                <label>Ocupación</label>
+              </div>
+            </div>
           </div>
 
-          <div class="field">
-            <div class="input-wrap" [class.focused]="focusedField === 'confirmPassword'" [class.has-value]="registerForm.get('confirmPassword')?.value" [class.error]="(registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched) || (passwordsMismatch && registerForm.get('confirmPassword')?.touched)">
-              <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/></svg>
-              <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" placeholder=" " (focus)="focusedField = 'confirmPassword'" (blur)="focusedField = ''" autocomplete="new-password" />
-              <label>Confirmar contraseña</label>
-              <button type="button" class="toggle-pwd" (click)="showConfirmPassword = !showConfirmPassword" tabindex="-1">
-                <svg *ngIf="!showConfirmPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                <svg *ngIf="showConfirmPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-              </button>
+          <div class="form-section">
+            <h3 class="section-title">Seguridad</h3>
+            <div class="field-group">
+              <div class="field">
+                <div class="input-wrap" [class.focused]="focusedField === 'password'" [class.has-value]="registerForm.get('password')?.value" [class.error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+                  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder=" " (focus)="focusedField = 'password'" (blur)="focusedField = ''" autocomplete="new-password" />
+                  <label>Contraseña</label>
+                  <button type="button" class="toggle-pwd" (click)="showPassword = !showPassword" tabindex="-1">
+                    <svg *ngIf="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg *ngIf="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  </button>
+                </div>
+                <div class="pwd-strength" *ngIf="registerForm.get('password')?.value && registerForm.get('password')?.dirty" [style.background]="passwordStrengthBg">
+                  <div class="pwd-label" [style.color]="passwordStrengthColor">{{ passwordStrengthLabel }}</div>
+                  <div class="pwd-bar">
+                    <div class="pwd-fill" [style.width.%]="passwordStrengthPercent" [style.background]="passwordStrengthColor"></div>
+                  </div>
+                </div>
+                <small *ngIf="registerForm.get('password')?.touched && getErrorMessage('password')">{{ getErrorMessage('password') }}</small>
+              </div>
+
+              <div class="field">
+                <div class="input-wrap" [class.focused]="focusedField === 'confirmPassword'" [class.has-value]="registerForm.get('confirmPassword')?.value" [class.error]="(registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched) || (passwordsMismatch && registerForm.get('confirmPassword')?.touched)">
+                  <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><line x1="12" y1="15" x2="12" y2="18"/></svg>
+                  <input [type]="showConfirmPassword ? 'text' : 'password'" formControlName="confirmPassword" placeholder=" " (focus)="focusedField = 'confirmPassword'" (blur)="focusedField = ''" autocomplete="new-password" />
+                  <label>Confirmar contraseña</label>
+                  <button type="button" class="toggle-pwd" (click)="showConfirmPassword = !showConfirmPassword" tabindex="-1">
+                    <svg *ngIf="!showConfirmPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg *ngIf="showConfirmPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                  </button>
+                </div>
+                <small *ngIf="registerForm.get('confirmPassword')?.touched && getErrorMessage('confirmPassword')">{{ getErrorMessage('confirmPassword') }}</small>
+                <small *ngIf="registerForm.get('confirmPassword')?.touched && passwordsMismatch" class="err">Las contraseñas no coinciden</small>
+                <small *ngIf="registerForm.get('confirmPassword')?.touched && !passwordsMismatch && registerForm.get('confirmPassword')?.valid && registerForm.get('password')?.valid" class="ok">Coinciden</small>
+              </div>
             </div>
-            <small *ngIf="registerForm.get('confirmPassword')?.touched && getErrorMessage('confirmPassword')">{{ getErrorMessage('confirmPassword') }}</small>
-            <small *ngIf="registerForm.get('confirmPassword')?.touched && passwordsMismatch" class="err">Las contraseñas no coinciden</small>
-            <small *ngIf="registerForm.get('confirmPassword')?.touched && !passwordsMismatch && registerForm.get('confirmPassword')?.valid && registerForm.get('password')?.valid" class="ok">Coinciden</small>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-submit" [disabled]="registerForm.invalid || isSendingCode">
+              <span *ngIf="!isSendingCode">Verificar correo</span>
+              <span *ngIf="isSendingCode" class="spinner"></span>
+            </button>
+            <p class="login-link">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p>
+          </div>
+
+          <p *ngIf="error" class="alert error">{{ error }}</p>
+        </form>
+      </ng-container>
+
+      <!-- STEP: Code verification -->
+      <ng-container *ngIf="step === 'code'">
+        <div class="form-header">
+          <button type="button" class="back-btn" (click)="backToForm()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
+          </button>
+          <h2>Verifica tu correo</h2>
+          <p>Enviamos un código de 6 dígitos a <strong>{{ maskedEmail }}</strong></p>
+        </div>
+
+        <div class="code-form">
+          <div class="code-inputs" (paste)="onCodePaste($event)">
+            <input *ngFor="let digit of verificationCode; let i = index"
+              type="text"
+              inputmode="numeric"
+              maxlength="1"
+              [value]="digit"
+              (input)="onCodeInput(i, $event)"
+              (keydown)="onCodeKeydown(i, $event)"
+              class="code-digit"
+              [class.filled]="digit !== ''"
+            />
+          </div>
+
+          <p *ngIf="codeError" class="alert error">{{ codeError }}</p>
+
+          <button type="button" class="btn-submit" (click)="verifyCode()" [disabled]="isVerifyingCode || verificationCode.join('').length !== 6">
+            <span *ngIf="!isVerifyingCode">Crear cuenta</span>
+            <span *ngIf="isVerifyingCode" class="spinner"></span>
+          </button>
+
+          <div class="resend-row">
+            <span *ngIf="codeResendTimer > 0" class="resend-timer">Reenviar en {{ codeResendTimer }}s</span>
+            <button *ngIf="codeResendTimer <= 0" type="button" class="resend-btn" (click)="resendCode()">Reenviar código</button>
           </div>
         </div>
-      </div>
+      </ng-container>
 
-      <button type="submit" class="btn-submit" [disabled]="registerForm.invalid || isSubmitting">
-        <span *ngIf="!isSubmitting">Crear cuenta</span>
-        <span *ngIf="isSubmitting" class="spinner"></span>
-      </button>
-    </form>
-
-    <div class="footer">
-      <p *ngIf="error" class="alert error">{{ error }}</p>
-      <p *ngIf="success" class="alert success">{{ success }}</p>
-      <p class="login-link">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p>
+      <!-- STEP: Success -->
+      <ng-container *ngIf="step === 'success'">
+        <div class="success-view">
+          <div class="success-circle">
+            <svg class="checkmark" viewBox="0 0 52 52">
+              <circle class="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+              <path class="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+            </svg>
+          </div>
+          <h2>¡Cuenta creada!</h2>
+          <p>Inicia sesión para comenzar</p>
+        </div>
+      </ng-container>
     </div>
   </div>
 </div>
