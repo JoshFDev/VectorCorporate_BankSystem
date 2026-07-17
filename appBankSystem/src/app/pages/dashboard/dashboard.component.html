@@ -93,6 +93,12 @@
             </div>
             <span class="action-label">Transferir</span>
           </button>
+          <button class="action-btn beneficiaries" (click)="editBeneficiaryId = ''; beneficiaryName = ''; beneficiaryAccount = ''; beneficiaryAlias = ''; showBeneficiaryModal = true">
+            <div class="action-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <span class="action-label">Contactos</span>
+          </button>
         </div>
       </section>
     </div>
@@ -213,6 +219,51 @@
       </section>
     </div>
 
+    <!-- Spending by category -->
+    <div class="spending-row" *ngIf="spendingCategories.length > 0">
+      <section class="card spending-card">
+        <div class="card-header-row">
+          <h3 class="card-title">Gastos por categoria</h3>
+          <span class="spending-total">Total: {{ formatCurrency(totalSpent) }}</span>
+        </div>
+        <div class="spending-list">
+          <div class="spending-item" *ngFor="let cat of spendingCategories">
+            <div class="spending-info">
+              <span class="spending-cat">{{ cat.label }}</span>
+              <span class="spending-pct">{{ cat.percentage }}%</span>
+            </div>
+            <div class="spending-bar-track">
+              <div class="spending-bar-fill" [style.width.%]="cat.percentage"></div>
+            </div>
+            <span class="spending-amount">{{ formatCurrency(cat.total) }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card recurring-card">
+        <div class="card-header-row">
+          <h3 class="card-title">Pagos recurrentes</h3>
+          <button class="btn-text" (click)="showRecurring = true">+ Nuevo</button>
+        </div>
+        <div class="recurring-list">
+          <div class="recurring-item" *ngFor="let rp of recurringPayments">
+            <div class="recurring-info">
+              <span class="recurring-desc">{{ rp.description }}</span>
+              <span class="recurring-meta">{{ rp.frequency }} · {{ rp.toAccountNumber }}</span>
+            </div>
+            <span class="recurring-amount">{{ formatCurrency(rp.amount) }}</span>
+            <div class="recurring-actions">
+              <button class="recurring-toggle" [class.inactive]="!rp.isActive" (click)="toggleRecurring(rp)">{{ rp.isActive ? 'Activo' : 'Pausado' }}</button>
+              <button class="recurring-delete" (click)="deleteRecurring(rp._id)">&times;</button>
+            </div>
+          </div>
+          <div class="empty" *ngIf="recurringPayments.length === 0">
+            <p>Sin pagos recurrentes</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
     <!-- Charts -->
     <section class="charts-section" *ngIf="monthlyData.length > 0">
       <div class="chart-card">
@@ -252,6 +303,12 @@
       <label>Monto</label>
       <input type="number" [(ngModel)]="depositAmount" min="1" placeholder="0.00" />
     </div>
+    <div class="field">
+      <label>Categoria</label>
+      <select [(ngModel)]="txnCategory" class="select-input">
+        <option *ngFor="let c of categories" [value]="c.value">{{ c.label }}</option>
+      </select>
+    </div>
     <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
     <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
     <button class="btn-submit" (click)="doDeposit()" [disabled]="depositAmount <= 0">Depositar</button>
@@ -267,6 +324,12 @@
       <label>Monto</label>
       <input type="number" [(ngModel)]="withdrawAmount" min="1" [max]="selectedAccount?.balance ?? null" placeholder="0.00" />
     </div>
+    <div class="field">
+      <label>Categoria</label>
+      <select [(ngModel)]="txnCategory" class="select-input">
+        <option *ngFor="let c of categories" [value]="c.value">{{ c.label }}</option>
+      </select>
+    </div>
     <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
     <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
     <button class="btn-submit" (click)="doWithdraw()" [disabled]="withdrawAmount <= 0 || withdrawAmount > (selectedAccount?.balance || 0)">Retirar</button>
@@ -279,6 +342,12 @@
     <ng-container *ngIf="!confirmTransfer">
       <p class="modal-account">Desde: {{ selectedAccount?.number }} · {{ accountTypeLabel(selectedAccount?.type || '') }}</p>
       <p class="modal-balance">Saldo disponible: {{ formatCurrency(selectedAccount?.balance || 0) }}</p>
+      <div class="beneficiary-chips" *ngIf="beneficiaries.length > 0">
+        <span class="chip-label">Beneficiarios:</span>
+        <button class="beneficiary-chip" *ngFor="let b of beneficiaries" (click)="selectBeneficiary(b)" [class.active]="transferBeneficiaryId === b._id">
+          {{ b.alias || b.name }}
+        </button>
+      </div>
       <div class="field">
         <label>Cuenta destino</label>
         <input type="text" [(ngModel)]="transferTo" placeholder="Numero de cuenta" />
@@ -286,6 +355,12 @@
       <div class="field">
         <label>Monto</label>
         <input type="number" [(ngModel)]="transferAmount" min="1" [max]="selectedAccount?.balance ?? null" placeholder="0.00" />
+      </div>
+      <div class="field">
+        <label>Categoria</label>
+        <select [(ngModel)]="txnCategory" class="select-input">
+          <option *ngFor="let c of categories" [value]="c.value">{{ c.label }}</option>
+        </select>
       </div>
       <button class="btn-submit" (click)="doTransfer()" [disabled]="transferAmount <= 0 || transferAmount > (selectedAccount?.balance || 0) || !transferTo">Continuar</button>
     </ng-container>
@@ -327,5 +402,61 @@
     <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
     <p *ngIf="txnSuccess" class="alert success">{{ txnSuccess }}</p>
     <button class="btn-submit" (click)="doCreateAccount()" [disabled]="saving">Crear cuenta</button>
+  </div>
+</app-modal>
+
+<!-- Recurring Payment Modal -->
+<app-modal [open]="showRecurring" title="Pago recurrente" (close)="showRecurring = false">
+  <div class="modal-txn">
+    <div class="field">
+      <label>Cuenta origen</label>
+      <select [(ngModel)]="recurringFrom" class="select-input">
+        <option *ngFor="let a of accounts" [value]="a.number">{{ a.number }} · {{ accountTypeLabel(a.type) }}</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Cuenta destino</label>
+      <input type="text" [(ngModel)]="recurringTo" placeholder="Numero de cuenta" />
+    </div>
+    <div class="field">
+      <label>Monto</label>
+      <input type="number" [(ngModel)]="recurringAmount" min="1" placeholder="0.00" />
+    </div>
+    <div class="field">
+      <label>Frecuencia</label>
+      <select [(ngModel)]="recurringFrequency" class="select-input">
+        <option value="weekly">Semanal</option>
+        <option value="biweekly">Quincenal</option>
+        <option value="monthly">Mensual</option>
+        <option value="quarterly">Trimestral</option>
+        <option value="yearly">Anual</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Descripcion</label>
+      <input type="text" [(ngModel)]="recurringDesc" placeholder="Pago de servicios..." />
+    </div>
+    <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
+    <button class="btn-submit" (click)="createRecurring()">Crear pago recurrente</button>
+  </div>
+</app-modal>
+
+<!-- Beneficiary Modal -->
+<app-modal [open]="showBeneficiaryModal" [title]="editBeneficiaryId ? 'Editar beneficiario' : 'Nuevo beneficiario'" (close)="showBeneficiaryModal = false; editBeneficiaryId = ''">
+  <div class="modal-txn">
+    <div class="field">
+      <label>Nombre</label>
+      <input type="text" [(ngModel)]="beneficiaryName" placeholder="Nombre completo" />
+    </div>
+    <div class="field">
+      <label>Numero de cuenta</label>
+      <input type="text" [(ngModel)]="beneficiaryAccount" placeholder="Numero de cuenta" [disabled]="!!editBeneficiaryId" />
+    </div>
+    <div class="field">
+      <label>Alias (opcional)</label>
+      <input type="text" [(ngModel)]="beneficiaryAlias" placeholder="Mama, Carlos..." />
+    </div>
+    <p *ngIf="txnError" class="alert error">{{ txnError }}</p>
+    <button class="btn-submit" (click)="saveBeneficiary()">{{ editBeneficiaryId ? 'Guardar cambios' : 'Crear beneficiario' }}</button>
   </div>
 </app-modal>

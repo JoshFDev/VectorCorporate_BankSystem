@@ -11,6 +11,8 @@ export interface ITransaction extends Document {
     // Monto de la transaccion (siempre positivo)
     description: string;
     // Descripcion opcional (ej: "Pago de servicios")
+    category: string;
+    // Categoria del gasto: food, transport, services, entertainment, health, education, shopping, general
     relatedAccount: mongoose.Types.ObjectId | null;
     // Si es transferencia, la cuenta destino/origen
     balanceBefore: number;
@@ -40,6 +42,11 @@ const transactionSchema = new Schema<ITransaction>({
     description: {
         type: String,
         default: ''
+    },
+    category: {
+        type: String,
+        default: 'general',
+        enum: ['food', 'transport', 'services', 'entertainment', 'health', 'education', 'shopping', 'salary', 'transfer', 'general']
     },
     relatedAccount: {
         type: Schema.Types.ObjectId,

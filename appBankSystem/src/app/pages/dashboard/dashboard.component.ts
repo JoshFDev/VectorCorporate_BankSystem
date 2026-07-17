@@ -11,6 +11,9 @@ import { SocketService } from '../../services/socket.service';
 import { NgChartsModule } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { ForexService, CurrencyRate } from '../../services/forex.service';
+import { RecurringService, RecurringPayment } from '../../services/recurring.service';
+import { BeneficiaryService, Beneficiary } from '../../services/beneficiary.service';
+import { SpendingCategory } from '../../services/account.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -108,6 +111,45 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   darkMode = false;
 
+  // Recurring payments
+  recurringPayments: RecurringPayment[] = [];
+  showRecurring = false;
+  recurringFrom = '';
+  recurringTo = '';
+  recurringAmount = 0;
+  recurringDesc = '';
+  recurringCategory = 'general';
+  recurringFrequency = 'monthly';
+
+  // Beneficiaries
+  beneficiaries: Beneficiary[] = [];
+  showBeneficiaryModal = false;
+  beneficiaryName = '';
+  beneficiaryAccount = '';
+  beneficiaryAlias = '';
+  beneficiaryBank = 'VectorBank';
+  transferBeneficiaryId = '';
+  editBeneficiaryId = '';
+
+  // Spending
+  spendingCategories: SpendingCategory[] = [];
+  totalSpent = 0;
+  showSpendingChart = false;
+
+  // Categories
+  readonly categories = [
+    { value: 'general', label: 'General' },
+    { value: 'food', label: 'Alimentos' },
+    { value: 'transport', label: 'Transporte' },
+    { value: 'services', label: 'Servicios' },
+    { value: 'entertainment', label: 'Entretenimiento' },
+    { value: 'health', label: 'Salud' },
+    { value: 'education', label: 'Educacion' },
+    { value: 'shopping', label: 'Compras' },
+    { value: 'salary', label: 'Salario' },
+  ];
+  txnCategory = 'general';
+
   constructor(
     private auth: AuthService,
     private accountSvc: AccountService,
@@ -115,6 +157,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private router: Router,
     private socket: SocketService,
     private forexSvc: ForexService,
+    private recurringSvc: RecurringService,
+    private beneficiarySvc: BeneficiaryService,
   ) {}
 
   ngOnInit() {
@@ -167,6 +211,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
     });
+    this.loadRecurring();
+    this.loadBeneficiaries();
   }
 
   selectAccount(acc: AccountData) {
@@ -176,6 +222,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       error: () => (this.transactions = []),
     });
     this.loadMonthlySummary(acc.number);
+    this.loadSpending(acc.number);
   }
 
   private loadMonthlySummary(accountNumber: string) {
@@ -308,6 +355,106 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
   }
 
+  // ── Recurring ──────────────────────────────────────────
+  private loadRecurring() {
+    this.recurringSvc.getPayments().subscribe({
+      next: (res) => (this.recurringPayments = res.payments || []),
+      error: () => {},
+    });
+  }
+
+  createRecurring() {
+    if (!this.recurringFrom || !this.recurringTo || this.recurringAmount <= 0) return;
+    this.recurringSvc.createPayment({
+      fromAccountNumber: this.recurringFrom,
+      toAccountNumber: this.recurringTo,
+      amount: this.recurringAmount,
+      description: this.recurringDesc,
+      category: this.recurringCategory,
+      frequency: this.recurringFrequency,
+    }).subscribe({
+      next: () => {
+        this.showRecurring = false;
+        this.recurringFrom = '';
+        this.recurringTo = '';
+        this.recurringAmount = 0;
+        this.recurringDesc = '';
+        this.loadRecurring();
+      },
+      error: (err) => { this.txnError = err.error?.error || 'Error al crear'; },
+    });
+  }
+
+  toggleRecurring(payment: RecurringPayment) {
+    this.recurringSvc.updatePayment(payment._id, { isActive: !payment.isActive }).subscribe({
+      next: () => this.loadRecurring(),
+    });
+  }
+
+  deleteRecurring(id: string) {
+    this.recurringSvc.deletePayment(id).subscribe({
+      next: () => this.loadRecurring(),
+    });
+  }
+
+  // ── Beneficiaries ──────────────────────────────────────
+  private loadBeneficiaries() {
+    this.beneficiarySvc.getBeneficiaries().subscribe({
+      next: (res) => (this.beneficiaries = res.beneficiaries || []),
+      error: () => {},
+    });
+  }
+
+  saveBeneficiary() {
+    if (!this.beneficiaryName || !this.beneficiaryAccount) return;
+    const obs = this.editBeneficiaryId
+      ? this.beneficiarySvc.updateBeneficiary(this.editBeneficiaryId, { name: this.beneficiaryName, alias: this.beneficiaryAlias, bank: this.beneficiaryBank })
+      : this.beneficiarySvc.createBeneficiary({ name: this.beneficiaryName, accountNumber: this.beneficiaryAccount, alias: this.beneficiaryAlias, bank: this.beneficiaryBank });
+    obs.subscribe({
+      next: () => {
+        this.showBeneficiaryModal = false;
+        this.editBeneficiaryId = '';
+        this.beneficiaryName = '';
+        this.beneficiaryAccount = '';
+        this.beneficiaryAlias = '';
+        this.loadBeneficiaries();
+      },
+      error: (err) => { this.txnError = err.error?.error || 'Error al guardar'; },
+    });
+  }
+
+  editBeneficiary(b: Beneficiary) {
+    this.editBeneficiaryId = b._id;
+    this.beneficiaryName = b.name;
+    this.beneficiaryAccount = b.accountNumber;
+    this.beneficiaryAlias = b.alias;
+    this.beneficiaryBank = b.bank;
+    this.showBeneficiaryModal = true;
+  }
+
+  deleteBeneficiary(id: string) {
+    this.beneficiarySvc.deleteBeneficiary(id).subscribe({
+      next: () => this.loadBeneficiaries(),
+    });
+  }
+
+  selectBeneficiary(b: Beneficiary) {
+    this.transferTo = b.accountNumber;
+    this.transferBeneficiaryId = b._id;
+  }
+
+  // ── Spending ───────────────────────────────────────────
+  private loadSpending(accountNumber: string) {
+    this.accountSvc.getSpendingSummary(accountNumber, 3).subscribe({
+      next: (res) => {
+        this.spendingCategories = res.categories || [];
+        this.totalSpent = res.totalSpent || 0;
+      },
+      error: () => {},
+    });
+  }
+
+  // ── Dark mode ──────────────────────────────────────────
   toggleDarkMode() {
     this.darkMode = !this.darkMode;
     localStorage.setItem('vb_darkMode', String(this.darkMode));
@@ -380,6 +527,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.withdrawAmount = 0;
     this.transferAmount = 0;
     this.transferTo = '';
+    this.txnCategory = 'general';
+    this.transferBeneficiaryId = '';
     this.confirmTransfer = false;
     this.newAccountType = 'savings';
     if (type === 'deposit') this.showDeposit = true;
@@ -399,7 +548,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!this.selectedAccount || this.depositAmount <= 0) return;
     this.txnError = '';
     this.txnSuccess = '';
-    this.txnSvc.deposit(this.selectedAccount.number, this.depositAmount).subscribe({
+    this.txnSvc.deposit(this.selectedAccount.number, this.depositAmount, undefined, this.txnCategory).subscribe({
       next: (res) => {
         this.txnSuccess = `Depósito de ${this.formatCurrency(this.depositAmount)} exitoso`;
         this.refreshAccount(res.account.number);
@@ -413,7 +562,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (!this.selectedAccount || this.withdrawAmount <= 0) return;
     this.txnError = '';
     this.txnSuccess = '';
-    this.txnSvc.withdraw(this.selectedAccount.number, this.withdrawAmount).subscribe({
+    this.txnSvc.withdraw(this.selectedAccount.number, this.withdrawAmount, undefined, this.txnCategory).subscribe({
       next: (res) => {
         this.txnSuccess = `Retiro de ${this.formatCurrency(this.withdrawAmount)} exitoso`;
         this.refreshAccount(res.account.number);
@@ -433,7 +582,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     this.txnError = '';
     this.txnSuccess = '';
-    this.txnSvc.transfer(this.selectedAccount.number, this.transferTo, this.transferAmount).subscribe({
+    this.txnSvc.transfer(this.selectedAccount.number, this.transferTo, this.transferAmount, undefined, this.txnCategory).subscribe({
       next: (res) => {
         this.txnSuccess = `Transferencia de ${this.formatCurrency(this.transferAmount)} exitosa`;
         this.confirmTransfer = false;

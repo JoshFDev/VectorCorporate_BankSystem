@@ -17,6 +17,8 @@ import fingerprintRoutes from './routes/fingerprint';
 import sensorRoutes from './routes/sensor';
 import notificationRoutes from './routes/notifications';
 import forexRoutes from './routes/forex';
+import recurringRoutes from './routes/recurring';
+import beneficiaryRoutes from './routes/beneficiaries';
 import { env } from './config/env';
 
 const app = express();
@@ -46,6 +48,8 @@ app.use('/api/fingerprint', fingerprintRoutes);
 app.use('/api/sensor', sensorRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/forex', forexRoutes);
+app.use('/api/recurring', recurringRoutes);
+app.use('/api/beneficiaries', beneficiaryRoutes);
 
 app.get('/', (_req, res) => {
     res.json({ message: 'VectorBank API running' });

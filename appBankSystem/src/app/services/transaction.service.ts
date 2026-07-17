@@ -20,15 +20,15 @@ export class TransactionService {
 
   constructor(private http: HttpClient) {}
 
-  deposit(accountNumber: string, amount: number, description?: string): Observable<any> {
-    return this.http.post(`${this.api}/transactions/deposit`, { accountNumber, amount, description });
+  deposit(accountNumber: string, amount: number, description?: string, category?: string): Observable<any> {
+    return this.http.post(`${this.api}/transactions/deposit`, { accountNumber, amount, description, category });
   }
 
-  withdraw(accountNumber: string, amount: number, description?: string): Observable<any> {
-    return this.http.post(`${this.api}/transactions/withdraw`, { accountNumber, amount, description });
+  withdraw(accountNumber: string, amount: number, description?: string, category?: string): Observable<any> {
+    return this.http.post(`${this.api}/transactions/withdraw`, { accountNumber, amount, description, category });
   }
 
-  transfer(fromAccount: string, toAccount: string, amount: number, description?: string): Observable<any> {
-    return this.http.post(`${this.api}/transactions/transfer`, { fromAccount, toAccount, amount, description });
+  transfer(fromAccount: string, toAccount: string, amount: number, description?: string, category?: string): Observable<any> {
+    return this.http.post(`${this.api}/transactions/transfer`, { fromAccount, toAccount, amount, description, category });
   }
 }

@@ -40,7 +40,7 @@ async function notifyAndEmail(userId: string, type: string, title: string, messa
 
 export async function deposit(req: AuthRequest, res: Response) {
     try {
-        const { accountNumber, amount, description } = req.body;
+        const { accountNumber, amount, description, category } = req.body;
         const account = await Account.findOne({ accountNumber });
         if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
 
@@ -48,7 +48,7 @@ export async function deposit(req: AuthRequest, res: Response) {
         account.balance += amount;
         await account.save();
 
-        const transaction = new Transaction({ accountId: account._id, type: 'deposit', amount, description: description || 'Deposito', balanceBefore, balanceAfter: account.balance });
+        const transaction = new Transaction({ accountId: account._id, type: 'deposit', amount, description: description || 'Deposito', category: category || 'general', balanceBefore, balanceAfter: account.balance });
         await transaction.save();
 
         await logAudit({ userId: account.userId.toString(), action: 'deposit', detail: `Deposito de Q${amount} a cuenta ${accountNumber}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { accountNumber, amount, balanceAfter: account.balance } });
@@ -63,7 +63,7 @@ export async function deposit(req: AuthRequest, res: Response) {
 
 export async function withdraw(req: AuthRequest, res: Response) {
     try {
-        const { accountNumber, amount, description } = req.body;
+        const { accountNumber, amount, description, category } = req.body;
         const account = await Account.findOne({ accountNumber });
         if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
         if (account.balance < amount) return res.status(400).json({ error: 'Saldo insuficiente' });
@@ -72,7 +72,7 @@ export async function withdraw(req: AuthRequest, res: Response) {
         account.balance -= amount;
         await account.save();
 
-        const transaction = new Transaction({ accountId: account._id, type: 'withdrawal', amount, description: description || 'Retiro', balanceBefore, balanceAfter: account.balance });
+        const transaction = new Transaction({ accountId: account._id, type: 'withdrawal', amount, description: description || 'Retiro', category: category || 'general', balanceBefore, balanceAfter: account.balance });
         await transaction.save();
 
         await logAudit({ userId: account.userId.toString(), action: 'withdrawal', detail: `Retiro de Q${amount} de cuenta ${accountNumber}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { accountNumber, amount, balanceAfter: account.balance } });
@@ -87,7 +87,7 @@ export async function withdraw(req: AuthRequest, res: Response) {
 
 export async function transfer(req: AuthRequest, res: Response) {
     try {
-        const { fromAccount, toAccount, amount, description } = req.body;
+        const { fromAccount, toAccount, amount, description, category } = req.body;
 
         const source = await Account.findOne({ accountNumber: fromAccount });
         if (!source) return res.status(404).json({ error: 'Cuenta origen no encontrada' });
@@ -144,10 +144,10 @@ export async function transfer(req: AuthRequest, res: Response) {
         destination.balance += amount;
         await destination.save();
 
-        const txOut = new Transaction({ accountId: source._id, type: 'transfer_out', amount, description: description || 'Transferencia enviada', relatedAccount: destination._id, balanceBefore: sourceBalanceBefore, balanceAfter: source.balance });
+        const txOut = new Transaction({ accountId: source._id, type: 'transfer_out', amount, description: description || 'Transferencia enviada', category: category || 'transfer', relatedAccount: destination._id, balanceBefore: sourceBalanceBefore, balanceAfter: source.balance });
         await txOut.save();
 
-        const txIn = new Transaction({ accountId: destination._id, type: 'transfer_in', amount, description: description || 'Transferencia recibida', relatedAccount: source._id, balanceBefore: destBalanceBefore, balanceAfter: destination.balance });
+        const txIn = new Transaction({ accountId: destination._id, type: 'transfer_in', amount, description: description || 'Transferencia recibida', category: category || 'transfer', relatedAccount: source._id, balanceBefore: destBalanceBefore, balanceAfter: destination.balance });
         await txIn.save();
 
         await logAudit({ userId: source.userId.toString(), action: 'transfer', detail: `Transferencia de Q${amount} de ${fromAccount} a ${toAccount}`, ipAddress: req.ip, userAgent: req.headers['user-agent'], metadata: { fromAccount, toAccount, amount } });

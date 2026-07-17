@@ -339,4 +339,6 @@ router.get('/:accountNumber/monthly-summary', accountController.getMonthlySummar
  */
 router.delete('/:accountNumber', accountController.deactivateAccount);
 
+router.get('/:accountNumber/spending-summary', accountController.getSpendingSummary);
+
 export default router;

@@ -480,3 +480,59 @@ export async function exportStatement(req: AuthRequest, res: Response) {
         res.status(500).json({ error: 'Error al exportar estado de cuenta' });
     }
 }
+
+const CATEGORY_LABELS: Record<string, string> = {
+    food: 'Alimentos',
+    transport: 'Transporte',
+    services: 'Servicios',
+    entertainment: 'Entretenimiento',
+    health: 'Salud',
+    education: 'Educacion',
+    shopping: 'Compras',
+    salary: 'Salario',
+    transfer: 'Transferencia',
+    general: 'General'
+};
+
+export async function getSpendingSummary(req: AuthRequest, res: Response) {
+    try {
+        const account = await Account.findOne({ accountNumber: req.params.accountNumber });
+        if (!account) return res.status(404).json({ error: 'Cuenta no encontrada' });
+        if (account.userId.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ error: 'No tienes acceso a esta cuenta' });
+        }
+
+        const months = parseInt(req.query.months as string) || 3;
+        const fromDate = new Date();
+        fromDate.setMonth(fromDate.getMonth() - months);
+        fromDate.setHours(0, 0, 0, 0);
+
+        const transactions = await Transaction.find({
+            accountId: account._id,
+            createdAt: { $gte: fromDate },
+            type: { $in: ['withdrawal', 'transfer_out'] }
+        });
+
+        const categoryTotals: Record<string, number> = {};
+        let totalSpent = 0;
+
+        for (const tx of transactions) {
+            const cat = tx.category || 'general';
+            categoryTotals[cat] = (categoryTotals[cat] || 0) + tx.amount;
+            totalSpent += tx.amount;
+        }
+
+        const categories = Object.entries(categoryTotals)
+            .map(([key, total]) => ({
+                category: key,
+                label: CATEGORY_LABELS[key] || key,
+                total,
+                percentage: totalSpent > 0 ? Math.round((total / totalSpent) * 100) : 0
+            }))
+            .sort((a, b) => b.total - a.total);
+
+        res.json({ categories, totalSpent, months });
+    } catch {
+        res.status(500).json({ error: 'Error al obtener resumen de gastos' });
+    }
+}

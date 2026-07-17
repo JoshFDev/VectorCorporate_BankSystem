@@ -69,4 +69,17 @@ export class AccountService {
   getTransactionById(id: string): Observable<{ transaction: any }> {
     return this.http.get<{ transaction: any }>(`${this.api}/accounts/transaction/${id}`);
   }
+
+  getSpendingSummary(accountNumber: string, months = 3): Observable<{ categories: SpendingCategory[]; totalSpent: number; months: number }> {
+    return this.http.get<{ categories: SpendingCategory[]; totalSpent: number; months: number }>(
+      `${this.api}/accounts/${accountNumber}/spending-summary?months=${months}`
+    );
+  }
+}
+
+export interface SpendingCategory {
+  category: string;
+  label: string;
+  total: number;
+  percentage: number;
 }

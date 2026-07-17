@@ -8,6 +8,7 @@ import app from './app';
 import { createServer } from 'http';
 import { connectDB } from './database';
 import { initSocket } from './services/socket.service';
+import { processRecurringPayments } from './controllers/recurring.controller';
 import { env } from './config/env';
 
 connectDB().then(() => {
@@ -17,5 +18,9 @@ connectDB().then(() => {
     httpServer.listen(env.PORT, () => {
         console.log(`Server on port ${env.PORT}`);
     });
+
+    setInterval(() => {
+        processRecurringPayments().catch(() => {});
+    }, 60 * 1000);
 });
 

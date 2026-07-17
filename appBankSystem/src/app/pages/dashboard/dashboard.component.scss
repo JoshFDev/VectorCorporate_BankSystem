@@ -309,6 +309,7 @@ $dark-text-2: #94a3b8;
   &.deposit .action-icon { background: #f0fdf4; color: #059669; }
   &.withdraw .action-icon { background: #fef2f2; color: #dc2626; }
   &.transfer .action-icon { background: #eff6ff; color: $primary; }
+  &.beneficiaries .action-icon { background: #faf5ff; color: #7c3aed; }
 }
 
 // ── Main grid ────────────────────────────────────────────
@@ -649,6 +650,149 @@ $dark-text-2: #94a3b8;
 }
 
 // ── Charts ───────────────────────────────────────────────
+.spending-row {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  max-height: 170px;
+}
+
+.spending-card {
+  flex: 1.2;
+}
+
+.spending-total {
+  font-size: 11px;
+  color: $text-3;
+  font-weight: 500;
+}
+
+.spending-list {
+  flex: 1;
+  overflow-y: auto;
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+}
+
+.spending-item {
+  padding: 5px 0;
+}
+
+.spending-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.spending-cat { font-size: 11px; font-weight: 500; color: $text; }
+.spending-pct { font-size: 10px; color: $text-3; }
+
+.spending-bar-track {
+  height: 4px;
+  background: $border-light;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 2px;
+}
+
+.spending-bar-fill {
+  height: 100%;
+  background: $primary;
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.spending-amount { font-size: 10px; color: $text-3; font-variant-numeric: tabular-nums; }
+
+.recurring-card { flex: 0.8; }
+
+.recurring-list {
+  flex: 1;
+  overflow-y: auto;
+  &::-webkit-scrollbar { width: 3px; }
+  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+}
+
+.recurring-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid $border-light;
+  &:last-child { border-bottom: none; }
+}
+
+.recurring-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.recurring-desc { font-size: 12px; font-weight: 500; color: $text; display: block; }
+.recurring-meta { font-size: 10px; color: $text-3; }
+.recurring-amount { font-size: 12px; font-weight: 600; color: $text; font-variant-numeric: tabular-nums; }
+
+.recurring-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.recurring-toggle {
+  font-size: 9px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid $border;
+  background: #dcfce7;
+  color: #059669;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &.inactive { background: #f1f5f9; color: $text-3; border-color: $border; }
+}
+
+.recurring-delete {
+  background: none;
+  border: none;
+  color: $text-3;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 2px;
+  transition: color 0.15s;
+  &:hover { color: #dc2626; }
+}
+
+// ── Beneficiary chips ────────────────────────────────────
+.beneficiary-chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.chip-label {
+  font-size: 11px;
+  color: $text-3;
+  font-weight: 500;
+}
+
+.beneficiary-chip {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid $border;
+  background: $surface;
+  color: $text-2;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { border-color: $primary; color: $primary; }
+  &.active { background: #eff6ff; border-color: $primary; color: $primary; }
+}
+
+// ── Charts section ───────────────────────────────────────
 .charts-section {
   display: flex;
   gap: 10px;
@@ -886,6 +1030,7 @@ $dark-text-2: #94a3b8;
     &.deposit .action-icon { background: #14532d; color: #4ade80; }
     &.withdraw .action-icon { background: #450a0a; color: #f87171; }
     &.transfer .action-icon { background: #172554; color: #60a5fa; }
+    &.beneficiaries .action-icon { background: #2e1065; color: #a78bfa; }
   }
 
   .card {
@@ -954,6 +1099,18 @@ $dark-text-2: #94a3b8;
   .empty { color: $dark-text-2; }
   .btn-create { background: #60a5fa; color: $dark-bg; &:hover { background: #93bbfd; } }
 
+  .spending-bar-track { background: $dark-border; }
+  .spending-bar-fill { background: #60a5fa; }
+  .spending-cat { color: $dark-text; }
+  .spending-pct, .spending-amount { color: $dark-text-2; }
+
+  .recurring-desc { color: $dark-text; }
+  .recurring-meta, .recurring-amount { color: $dark-text-2; }
+  .recurring-toggle { border-color: $dark-border; background: #14532d; color: #4ade80; &.inactive { background: $dark-surface-2; color: $dark-text-2; } }
+  .recurring-delete { color: $dark-text-2; &:hover { color: #f87171; } }
+
+  .beneficiary-chip { border-color: $dark-border; background: $dark-surface; color: $dark-text-2; &:hover { border-color: #60a5fa; color: #60a5fa; } &.active { background: #172554; border-color: #60a5fa; color: #60a5fa; } }
+
   .chart-card { background: $dark-surface; border-color: $dark-border; }
   .loading-screen { background: $dark-bg; }
   .spinner { border-color: $dark-border; border-top-color: #60a5fa; }
@@ -980,6 +1137,7 @@ $dark-text-2: #94a3b8;
   .main-grid { grid-template-columns: 1fr; overflow-y: auto; }
   .txn-card { grid-column: auto; max-height: none; }
   .charts-section { flex-direction: column; max-height: none; }
+  .spending-row { flex-direction: column; max-height: none; }
 }
 
 @media (max-width: 768px) {
