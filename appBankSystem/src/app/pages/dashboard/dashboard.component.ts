@@ -106,6 +106,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   convertRate: number | null = null;
   showForexConverter = false;
 
+  darkMode = false;
+
   constructor(
     private auth: AuthService,
     private accountSvc: AccountService,
@@ -116,6 +118,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    this.darkMode = localStorage.getItem('vb_darkMode') === 'true';
     this.setGreeting();
     this.auth.ready$.subscribe((ready) => {
       if (!ready) return;
@@ -303,6 +306,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount);
+  }
+
+  toggleDarkMode() {
+    this.darkMode = !this.darkMode;
+    localStorage.setItem('vb_darkMode', String(this.darkMode));
+    this.updateChartColors();
+  }
+
+  private updateChartColors() {
+    const grid = this.darkMode ? '#334155' : '#e2e8f0';
+    const tick = this.darkMode ? '#94a3b8' : '#475569';
+    this.barChartOptions = {
+      ...this.barChartOptions,
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: tick } },
+        y: {
+          beginAtZero: true,
+          grid: { color: grid },
+          ticks: {
+            font: { size: 11 },
+            color: tick,
+            callback: (val: any) => `$${Number(val).toLocaleString('es-MX')}`
+          }
+        }
+      }
+    };
   }
 
   txnIcon(type: string): string {
