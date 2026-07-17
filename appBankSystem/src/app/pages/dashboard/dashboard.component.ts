@@ -317,8 +317,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private updateChartColors() {
     const grid = this.darkMode ? '#334155' : '#e2e8f0';
     const tick = this.darkMode ? '#94a3b8' : '#475569';
+    const legendColor = this.darkMode ? '#cbd5e1' : '#475569';
     this.barChartOptions = {
       ...this.barChartOptions,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 16, font: { size: 12 }, color: legendColor } },
+        tooltip: this.barChartOptions?.plugins?.tooltip
+      },
       scales: {
         x: { grid: { display: false }, ticks: { font: { size: 11 }, color: tick } },
         y: {
@@ -330,6 +335,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
             callback: (val: any) => `$${Number(val).toLocaleString('es-MX')}`
           }
         }
+      }
+    };
+    this.doughnutChartOptions = {
+      ...this.doughnutChartOptions,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12, font: { size: 12 }, color: legendColor } },
+        tooltip: this.doughnutChartOptions?.plugins?.tooltip
       }
     };
   }
