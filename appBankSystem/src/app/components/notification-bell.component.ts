@@ -38,7 +38,7 @@ import { SocketService } from '../services/socket.service';
               <div class="notif-time">{{ getTimeAgo(n.createdAt) }}</div>
             </div>
             <div class="notif-amount" *ngIf="n.amount" [class.positive]="n.type === 'deposit' || n.type === 'transfer_in'" [class.negative]="n.type === 'withdrawal' || n.type === 'transfer_out'">
-              {{ (n.type === 'deposit' || n.type === 'transfer_in') ? '+' : '-' }} Q{{ n.amount.toFixed(2) }}
+              {{ (n.type === 'deposit' || n.type === 'transfer_in') ? '+' : '-' }} ${{ n.amount.toFixed(2) }}
             </div>
           </div>
         </div>

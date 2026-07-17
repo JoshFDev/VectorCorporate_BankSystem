@@ -31,7 +31,7 @@ export class ForexService {
 
   constructor(private http: HttpClient) {}
 
-  getRates(base: string = 'GTQ'): Observable<ForexRatesResponse> {
+  getRates(base: string = 'MXN'): Observable<ForexRatesResponse> {
     return this.http.get<ForexRatesResponse>(`${this.apiUrl}/rates`, { params: { base } });
   }
 

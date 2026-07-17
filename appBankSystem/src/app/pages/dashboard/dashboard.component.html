@@ -137,11 +137,10 @@
             <div class="converter-field">
               <label>De</label>
               <select [(ngModel)]="convertFrom" class="converter-select">
+                <option value="MXN">MXN</option>
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
                 <option value="GBP">GBP</option>
-                <option value="GTQ">GTQ</option>
-                <option value="MXN">MXN</option>
               </select>
             </div>
             <button class="swap-btn" (click)="swapCurrencies()">
@@ -150,7 +149,6 @@
             <div class="converter-field">
               <label>A</label>
               <select [(ngModel)]="convertTo" class="converter-select">
-                <option value="GTQ">GTQ</option>
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
                 <option value="GBP">GBP</option>

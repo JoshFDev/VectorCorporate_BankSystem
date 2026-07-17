@@ -58,7 +58,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         callbacks: {
           label: (ctx: any) => {
             const val = ctx.parsed.y;
-            return `${ctx.dataset.label}: Q${val.toLocaleString('es-GT', { minimumFractionDigits: 2 })}`;
+            return `${ctx.dataset.label}: $${val.toLocaleString('es-MX', { minimumFractionDigits: 2 })}`;
           }
         }
       }
@@ -70,7 +70,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         grid: { color: '#e2e8f0' },
         ticks: {
           font: { size: 11 },
-          callback: (val: any) => `Q${Number(val).toLocaleString('es-GT')}`
+          callback: (val: any) => `$${Number(val).toLocaleString('es-MX')}`
         }
       }
     }
@@ -88,7 +88,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             const val = ctx.parsed;
             const total = ctx.dataset.data.reduce((a: number, b: number) => a + b, 0);
             const pct = total > 0 ? ((val / total) * 100).toFixed(1) : '0';
-            return `${ctx.label}: Q${val.toLocaleString('es-GT', { minimumFractionDigits: 2 })} (${pct}%)`;
+            return `${ctx.label}: $${val.toLocaleString('es-MX', { minimumFractionDigits: 2 })} (${pct}%)`;
           }
         }
       }
@@ -98,9 +98,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Forex
   forexRates: CurrencyRate[] = [];
   forexLoading = false;
-  forexBase = 'GTQ';
+  forexBase = 'MXN';
   convertFrom = 'USD';
-  convertTo = 'GTQ';
+  convertTo = 'MXN';
   convertAmount = 1;
   convertResult: number | null = null;
   convertRate: number | null = null;
@@ -191,7 +191,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     const labels = data.map(d => {
       const [y, m] = d.month.split('-');
       const date = new Date(parseInt(y), parseInt(m) - 1);
-      return date.toLocaleDateString('es-GT', { month: 'short', year: '2-digit' });
+      return date.toLocaleDateString('es-MX', { month: 'short', year: '2-digit' });
     });
 
     this.barChartData = {
