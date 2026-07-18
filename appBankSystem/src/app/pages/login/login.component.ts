@@ -49,6 +49,13 @@ export class LoginComponent implements OnInit {
     this.loadRememberMe();
   }
 
+  switchMode(newMode: 'password' | 'fingerprint') {
+    if (this.mode === newMode || this.scanning || this.submitting) return;
+    this.error = '';
+    this.fingerprintError = false;
+    this.mode = newMode;
+  }
+
   private setGreeting() {
     const h = new Date().getHours();
     if (h < 12) this.greeting = 'Buenos días — revisa tu saldo en un segundo';
@@ -107,13 +114,6 @@ export class LoginComponent implements OnInit {
       const val = this.loginForm.get('identifier')?.value;
       if (val) localStorage.setItem('vb_identifier', val);
     }
-  }
-
-  switchMode(newMode: 'password' | 'fingerprint') {
-    if (this.mode === newMode || this.scanning || this.submitting) return;
-    this.error = '';
-    this.fingerprintError = false;
-    this.mode = newMode;
   }
 
   private triggerShake() {
