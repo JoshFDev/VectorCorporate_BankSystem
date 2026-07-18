@@ -24,7 +24,7 @@ export async function getUnreadCount(req: AuthRequest, res: Response) {
 
 export async function markAsRead(req: AuthRequest, res: Response) {
     try {
-        const success = await notificationService.markAsRead(req.user._id.toString(), req.params.id);
+        const success = await notificationService.markAsRead(req.user._id.toString(), req.params.id as string);
         if (!success) return res.status(404).json({ error: 'Notificacion no encontrada' });
         res.json({ message: 'Notificacion marcada como leida' });
     } catch (error) {
