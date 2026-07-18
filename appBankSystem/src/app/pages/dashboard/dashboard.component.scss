@@ -22,7 +22,6 @@ $dark-text-2: #94a3b8;
   display: flex;
   flex-direction: column;
   background: $bg;
-  overflow: hidden;
 }
 
 // ── Top bar ──────────────────────────────────────────────
@@ -113,7 +112,7 @@ $dark-text-2: #94a3b8;
   padding: 14px 24px 14px;
   max-width: 1440px;
   margin: 0 auto;
-  overflow: hidden;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -189,59 +188,42 @@ $dark-text-2: #94a3b8;
   flex: 2.5;
   background: $primary;
   border-radius: 10px;
-  padding: 12px 16px;
+  padding: 16px 20px;
   color: #fff;
 
-  .balance-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2px;
-  }
-
   .balance-greeting {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 400;
     opacity: 0.6;
-  }
-
-  .balance-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-bottom: 6px;
   }
 
   .balance-amount {
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 700;
     letter-spacing: -0.5px;
-    line-height: 1.1;
+    line-height: 1;
     font-variant-numeric: tabular-nums;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
   }
 
-  .balance-stats {
+  .balance-right {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-top: 8px;
+    gap: 14px;
+    padding-top: 10px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .stat { display: flex; flex-direction: column; gap: 0; }
-  .stat-value { font-size: 13px; font-weight: 600; }
-  .stat-label { font-size: 9px; opacity: 0.4; font-weight: 400; }
+  .stat-value { font-size: 14px; font-weight: 600; }
+  .stat-label { font-size: 10px; opacity: 0.4; font-weight: 400; }
   .stat-active { color: #86efac; opacity: 1; }
   .stat-dot {
     width: 3px;
     height: 3px;
     border-radius: 50%;
     background: rgba(255, 255, 255, 0.2);
-    flex-shrink: 0;
+    align-self: center;
   }
 }
 
@@ -315,8 +297,6 @@ $dark-text-2: #94a3b8;
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
-  flex: 1;
-  min-height: 0;
 }
 
 // ── Card ─────────────────────────────────────────────────
@@ -376,11 +356,9 @@ $dark-text-2: #94a3b8;
 
 // ── Account items ────────────────────────────────────────
 .account-list {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  &::-webkit-scrollbar { width: 3px; }
-  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .account-item {
@@ -577,11 +555,9 @@ $dark-text-2: #94a3b8;
 
 // ── Transactions ─────────────────────────────────────────
 .txn-list {
-  flex: 1;
-  overflow-y: auto;
-  min-height: 0;
-  &::-webkit-scrollbar { width: 3px; }
-  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .txn-item {
@@ -651,8 +627,6 @@ $dark-text-2: #94a3b8;
 .spending-row {
   display: flex;
   gap: 10px;
-  flex-shrink: 0;
-  max-height: 170px;
 }
 
 .spending-card {
@@ -666,10 +640,9 @@ $dark-text-2: #94a3b8;
 }
 
 .spending-list {
-  flex: 1;
-  overflow-y: auto;
-  &::-webkit-scrollbar { width: 3px; }
-  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .spending-item {
@@ -705,10 +678,9 @@ $dark-text-2: #94a3b8;
 .recurring-card { flex: 0.8; }
 
 .recurring-list {
-  flex: 1;
-  overflow-y: auto;
-  &::-webkit-scrollbar { width: 3px; }
-  &::-webkit-scrollbar-thumb { background: $border; border-radius: 2px; }
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .recurring-item {
@@ -794,8 +766,6 @@ $dark-text-2: #94a3b8;
 .charts-section {
   display: flex;
   gap: 10px;
-  flex-shrink: 0;
-  max-height: 170px;
 }
 
 .chart-card {
@@ -1006,10 +976,6 @@ $dark-text-2: #94a3b8;
 
   .balance-card {
     background: #1e3a8a;
-
-    .balance-icon { background: rgba(255, 255, 255, 0.06); }
-    .balance-stats { border-top-color: rgba(255, 255, 255, 0.08); }
-    .stat-dot { background: rgba(255, 255, 255, 0.15); }
     .stat-active { color: #86efac; }
   }
 
@@ -1112,8 +1078,6 @@ $dark-text-2: #94a3b8;
   .chart-card { background: $dark-surface; border-color: $dark-border; }
   .loading-screen { background: $dark-bg; }
   .spinner { border-color: $dark-border; border-top-color: #60a5fa; }
-  .account-list::-webkit-scrollbar-thumb { background: $dark-border; }
-  .txn-list::-webkit-scrollbar-thumb { background: $dark-border; }
 }
 
 // ── Responsive ───────────────────────────────────────────
@@ -1141,16 +1105,17 @@ $dark-text-2: #94a3b8;
 @media (max-width: 768px) {
   .topbar { padding: 0 12px; .user-name { display: none; } }
   .content { padding: 6px 10px; }
-  .balance-card { padding: 10px 12px; .balance-amount { font-size: 20px; } }
+  .balance-card { padding: 12px 14px; .balance-amount { font-size: 22px; } }
   .converter-row { flex-direction: column; gap: 4px; }
   .swap-btn { align-self: center; }
 }
 
 @media (max-width: 480px) {
   .balance-card {
-    .balance-top { flex-direction: column; gap: 6px; }
-    .balance-icon { display: none; }
-    .balance-stats { gap: 10px; }
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    .balance-right { gap: 8px; }
   }
   .rate-name { display: none; }
 }
