@@ -45,26 +45,23 @@
     <div class="top-row">
       <section class="balance-card">
         <div class="balance-top">
-          <div>
-            <div class="balance-greeting">{{ greeting }}, {{ user?.name?.split(' ')[0] }}</div>
-            <div class="balance-label">Saldo total disponible</div>
-            <div class="balance-amount">{{ formatCurrency(totalBalance) }}</div>
-          </div>
+          <div class="balance-greeting">{{ greeting }}, {{ user?.name?.split(' ')[0] }}</div>
           <div class="balance-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M6 12h.01M18 12h.01"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M6 12h.01M18 12h.01"/></svg>
           </div>
         </div>
+        <div class="balance-amount">{{ formatCurrency(totalBalance) }}</div>
         <div class="balance-stats">
           <div class="stat">
             <span class="stat-value">{{ activeAccounts }}</span>
-            <span class="stat-label">Cuenta{{ activeAccounts !== 1 ? 's' : '' }}</span>
+            <span class="stat-label">Cuentas</span>
           </div>
-          <div class="stat-divider"></div>
+          <span class="stat-dot"></span>
           <div class="stat">
             <span class="stat-value">{{ recentTransactionsCount }}</span>
             <span class="stat-label">Movimientos</span>
           </div>
-          <div class="stat-divider"></div>
+          <span class="stat-dot"></span>
           <div class="stat">
             <span class="stat-value stat-active">Activo</span>
             <span class="stat-label">Estado</span>

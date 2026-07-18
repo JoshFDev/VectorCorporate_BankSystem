@@ -189,62 +189,60 @@ $dark-text-2: #94a3b8;
   flex: 2.5;
   background: $primary;
   border-radius: 10px;
-  padding: 16px 20px;
+  padding: 12px 16px;
   color: #fff;
 
   .balance-top {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-  }
-
-  .balance-greeting {
-    font-size: 12px;
-    font-weight: 400;
-    opacity: 0.6;
+    align-items: center;
     margin-bottom: 2px;
   }
 
-  .balance-label {
-    font-size: 10px;
-    opacity: 0.4;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 500;
-  }
-
-  .balance-amount {
-    font-size: 28px;
-    font-weight: 700;
-    letter-spacing: -1px;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
+  .balance-greeting {
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.6;
   }
 
   .balance-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
     background: rgba(255, 255, 255, 0.08);
     display: flex;
     align-items: center;
     justify-content: center;
   }
 
+  .balance-amount {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 8px;
+  }
+
   .balance-stats {
     display: flex;
-    gap: 16px;
-    padding-top: 10px;
+    align-items: center;
+    gap: 8px;
+    padding-top: 8px;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .stat { display: flex; flex-direction: column; gap: 0; }
-  .stat-value { font-size: 14px; font-weight: 600; }
-  .stat-label { font-size: 10px; opacity: 0.4; font-weight: 400; }
+  .stat-value { font-size: 13px; font-weight: 600; }
+  .stat-label { font-size: 9px; opacity: 0.4; font-weight: 400; }
   .stat-active { color: #86efac; opacity: 1; }
-  .stat-divider { width: 1px; background: rgba(255, 255, 255, 0.08); }
+  .stat-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+  }
 }
 
 // ── Actions card ─────────────────────────────────────────
@@ -1011,7 +1009,7 @@ $dark-text-2: #94a3b8;
 
     .balance-icon { background: rgba(255, 255, 255, 0.06); }
     .balance-stats { border-top-color: rgba(255, 255, 255, 0.08); }
-    .stat-divider { background: rgba(255, 255, 255, 0.06); }
+    .stat-dot { background: rgba(255, 255, 255, 0.15); }
     .stat-active { color: #86efac; }
   }
 
@@ -1143,7 +1141,7 @@ $dark-text-2: #94a3b8;
 @media (max-width: 768px) {
   .topbar { padding: 0 12px; .user-name { display: none; } }
   .content { padding: 6px 10px; }
-  .balance-card { padding: 12px 14px; .balance-amount { font-size: 22px; } }
+  .balance-card { padding: 10px 12px; .balance-amount { font-size: 20px; } }
   .converter-row { flex-direction: column; gap: 4px; }
   .swap-btn { align-self: center; }
 }
